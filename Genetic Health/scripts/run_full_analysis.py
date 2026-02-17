@@ -52,7 +52,7 @@ def print_step(text):
 # =============================================================================
 
 def load_genome(genome_path: Path) -> tuple:
-    """Load 23andMe genome file into dictionaries."""
+    """Load 23andMe/Ancestry genome file into dictionaries."""
     print_step(f"Loading genome from {genome_path}")
 
     genome_by_rsid = {}
@@ -63,19 +63,31 @@ def load_genome(genome_path: Path) -> tuple:
             if line.startswith('#'):
                 continue
             parts = line.strip().split('\t')
-            if len(parts) >= 4:
-                rsid, chrom, pos, genotype = parts[0], parts[1], parts[2], parts[3]
-                if genotype != '--':
-                    genome_by_rsid[rsid] = {
-                        'chromosome': chrom,
-                        'position': pos,
-                        'genotype': genotype
-                    }
-                    pos_key = f"{chrom}:{pos}"
-                    genome_by_position[pos_key] = {
-                        'rsid': rsid,
-                        'genotype': genotype
-                    }
+            if len(parts) < 4:
+                continue
+
+            rsid, chrom, pos = parts[0], parts[1], parts[2]
+
+            if len(parts) >= 5:
+                # Ancestry style: allele1 + allele2
+                genotype = f"{parts[3]}{parts[4]}"
+            else:
+                # 23andMe style: single genotype column
+                genotype = parts[3]
+
+            if genotype == '--':
+                continue
+
+            genome_by_rsid[rsid] = {
+                'chromosome': chrom,
+                'position': pos,
+                'genotype': genotype
+            }
+            pos_key = f"{chrom}:{pos}"
+            genome_by_position[pos_key] = {
+                'rsid': rsid,
+                'genotype': genotype
+            }
 
     print(f"    Loaded {len(genome_by_rsid):,} SNPs")
     return genome_by_rsid, genome_by_position
