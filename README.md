@@ -5,9 +5,10 @@ A genome intelligence platform for health insights and genetic analysis.
 ## What works now
 
 - Dark-mode landing page with built-in DNA upload/analyze flow (`index.html` + `api/analyze.py`)
-- Async job API with SQLite-backed job table and background worker loop
+- Async job API with SQLite-backed job table and **external worker process support**
 - End-to-end analysis via existing Python pipeline in `Genetic Health/scripts/run_full_analysis.py`
-- API writes report artifacts to isolated runtime directories and serves downloadable ZIP bundles
+- Artifact persistence layer (local artifact store now, object-store interface in place)
+- Cleanup policy endpoint for stale uploads/artifacts/job rows
 
 ## Data prerequisites
 
@@ -26,6 +27,8 @@ curl http://localhost:8000/api/health
 
 ## Local development
 
+### Terminal 1: API
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -33,7 +36,16 @@ pip install -r requirements.txt
 python api/analyze.py
 ```
 
+### Terminal 2: Worker (recommended)
+
+```bash
+source .venv/bin/activate
+python api/worker.py
+```
+
 Then open `http://localhost:8000` and upload a raw DNA file (e.g., `AncestryDNA.txt`).
+
+> Optional: set `START_IN_PROCESS_WORKER=true` to run worker thread inside API process for local demos.
 
 ## API endpoints
 
@@ -42,11 +54,13 @@ Then open `http://localhost:8000` and upload a raw DNA file (e.g., `AncestryDNA.
 - `GET /api/jobs/<job_id>/download` — download ZIP after completion
 - `POST /api/analyze` — backward-compatible alias to `POST /api/jobs`
 - `GET /api/health` — dataset + queue diagnostics
+- `POST /api/admin/process-once` — process one queued job (admin/debug)
+- `POST /api/admin/cleanup` — cleanup old uploads/artifacts/jobs
 
 ## Automated tests
 
 ```bash
-python -m py_compile api/analyze.py api/job_queue.py 'Genetic Health/scripts/run_full_analysis.py'
+python -m py_compile api/analyze.py api/job_queue.py api/worker.py 'Genetic Health/scripts/run_full_analysis.py'
 python -m unittest discover -s tests -v
 ```
 
@@ -63,7 +77,8 @@ Routes:
 
 ## Notes for production
 
-- Current queue uses local SQLite + in-process worker thread; for multi-instance production, move to Redis/Postgres + external worker.
+- Queue API contract is async and worker can be run as a separate process.
+- Current persistence is local filesystem-backed artifact store; swap to cloud object storage by implementing `ArtifactStore`.
 - Uploads are limited to 25MB via Flask `MAX_CONTENT_LENGTH`.
 
 ## Project docs

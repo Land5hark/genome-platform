@@ -654,10 +654,12 @@
             e.preventDefault();
             statusEl.textContent = 'Uploading DNA file and queuing analysis...';
 
+            const requestId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
             const formData = new FormData(form);
             try {
                 const enqueueResponse = await fetch('/api/jobs', {
                     method: 'POST',
+                    headers: { 'X-Request-Id': requestId },
                     body: formData,
                 });
 
@@ -667,11 +669,21 @@
                 }
 
                 const jobId = enqueuePayload.job.id;
-                statusEl.textContent = `Job queued (${jobId.slice(0, 8)}...). Processing...`;
+                statusEl.textContent = `Job queued (${jobId.slice(0, 8)}...). Request: ${requestId.slice(0, 8)}...`;
+
+                const startedAt = Date.now();
+                const maxWaitMs = 8 * 60 * 1000;
+                let delayMs = 1000;
 
                 while (true) {
-                    await wait(2000);
-                    const statusResponse = await fetch(`/api/jobs/${jobId}`);
+                    if ((Date.now() - startedAt) > maxWaitMs) {
+                        throw new Error('Timed out waiting for job completion. Please check again in a moment.');
+                    }
+
+                    await wait(delayMs);
+                    const statusResponse = await fetch(`/api/jobs/${jobId}`, {
+                        headers: { 'X-Request-Id': requestId },
+                    });
                     const statusPayload = await statusResponse.json();
                     if (!statusResponse.ok) {
                         throw new Error(statusPayload.error || 'Failed to read job status');
@@ -693,6 +705,7 @@
                     }
 
                     statusEl.textContent = `Job status: ${job.status}...`;
+                    delayMs = Math.min(delayMs + 500, 5000);
                 }
             } catch (err) {
                 statusEl.textContent = `Error: ${err.message}`;

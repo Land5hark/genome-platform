@@ -1,21 +1,29 @@
+import logging
 import mimetypes
+import os
 import sys
 import threading
+import uuid
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, g, jsonify, request, send_file
 
 from job_queue import (
-    init_db,
+    artifact_store,
+    cleanup_expired_jobs,
     enqueue_job,
     get_job,
+    init_db,
     list_recent_jobs,
-    worker_loop,
     process_next_job,
+    worker_loop,
 )
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger('genome-platform')
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = REPO_ROOT / 'Genetic Health' / 'scripts'
@@ -34,6 +42,9 @@ OPTIONAL_DATASETS = [
 ]
 
 _worker_started = False
+
+init_db()
+
 
 
 def _dataset_status():
@@ -54,6 +65,7 @@ def _serialize_job(job: dict):
         'updated_at': job.get('updated_at'),
         'started_at': job.get('started_at'),
         'completed_at': job.get('completed_at'),
+        'request_id': job.get('request_id'),
     }
     if job.get('status') == 'completed':
         response['download_url'] = f"/api/jobs/{job['id']}/download"
@@ -64,17 +76,25 @@ def _start_worker_once():
     global _worker_started
     if _worker_started:
         return
-    init_db()
     thread = threading.Thread(target=worker_loop, args=(run_full_analysis,), daemon=True)
     thread.start()
     _worker_started = True
+    logger.info('{"event":"worker_started"}')
 
 
 @app.before_request
-def _ensure_worker():
+def _before_request():
+    g.request_id = request.headers.get('X-Request-Id') or str(uuid.uuid4())
     if app.config.get('DISABLE_BACKGROUND_WORKER'):
         return
-    _start_worker_once()
+    if os.getenv('START_IN_PROCESS_WORKER', 'false').lower() == 'true':
+        _start_worker_once()
+
+
+@app.after_request
+def _after_request(response):
+    response.headers['X-Request-Id'] = g.request_id
+    return response
 
 
 @app.post('/api/jobs')
@@ -88,8 +108,10 @@ def create_job():
         return jsonify({'error': f'Unsupported file type: {ext}. Use .txt or .csv'}), 400
 
     subject_name = request.form.get('subject_name') or None
-    job_id = enqueue_job(uploaded.filename, uploaded.read(), subject_name)
+    job_id = enqueue_job(uploaded.filename, uploaded.read(), subject_name, request_id=g.request_id)
     job = get_job(job_id)
+
+    logger.info(f'{{"event":"job_enqueued","job_id":"{job_id}","request_id":"{g.request_id}"}}')
     return jsonify({'job': _serialize_job(job)}), 202
 
 
@@ -106,11 +128,11 @@ def download_job(job_id: str):
     job = get_job(job_id)
     if not job:
         return jsonify({'error': 'Job not found'}), 404
-    if job['status'] != 'completed' or not job.get('zip_path'):
+    if job['status'] != 'completed' or not job.get('storage_key'):
         return jsonify({'error': 'Job not completed yet'}), 409
 
-    zip_path = Path(job['zip_path'])
-    if not zip_path.exists():
+    zip_path = artifact_store.get_zip_path(job['storage_key'])
+    if not zip_path:
         return jsonify({'error': 'Report archive not found'}), 410
 
     mimetype, _ = mimetypes.guess_type(str(zip_path))
@@ -122,7 +144,6 @@ def download_job(job_id: str):
     )
 
 
-# Backward-compatible endpoint; now async.
 @app.post('/api/analyze')
 def analyze_compat():
     return create_job()
@@ -130,8 +151,9 @@ def analyze_compat():
 
 @app.get('/api/health')
 def health():
-    queued = [j for j in list_recent_jobs(50) if j['status'] == 'queued']
-    processing = [j for j in list_recent_jobs(50) if j['status'] == 'processing']
+    recent = list_recent_jobs(100)
+    queued = [j for j in recent if j['status'] == 'queued']
+    processing = [j for j in recent if j['status'] == 'processing']
     return jsonify(
         {
             'status': 'ok',
@@ -139,6 +161,7 @@ def health():
             'queue': {
                 'queued_count': len(queued),
                 'processing_count': len(processing),
+                'worker_mode': 'in_process' if _worker_started else 'external',
                 'worker_started': _worker_started,
             },
         }
@@ -153,6 +176,14 @@ def admin_process_once():
     return jsonify({'processed': True, 'job': _serialize_job(job)})
 
 
+@app.post('/api/admin/cleanup')
+def admin_cleanup():
+    result = cleanup_expired_jobs()
+    return jsonify({'ok': True, 'result': result})
+
+
 if __name__ == '__main__':
-    _start_worker_once()
+    init_db()
+    if os.getenv('START_IN_PROCESS_WORKER', 'false').lower() == 'true':
+        _start_worker_once()
     app.run(host='0.0.0.0', port=8000, debug=True)
