@@ -72,6 +72,8 @@ def _start_worker_once():
 
 @app.before_request
 def _ensure_worker():
+    if app.config.get('DISABLE_BACKGROUND_WORKER'):
+        return
     _start_worker_once()
 
 

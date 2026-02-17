@@ -43,6 +43,13 @@ Then open `http://localhost:8000` and upload a raw DNA file (e.g., `AncestryDNA.
 - `POST /api/analyze` — backward-compatible alias to `POST /api/jobs`
 - `GET /api/health` — dataset + queue diagnostics
 
+## Automated tests
+
+```bash
+python -m py_compile api/analyze.py api/job_queue.py 'Genetic Health/scripts/run_full_analysis.py'
+python -m unittest discover -s tests -v
+```
+
 ## Deploy to Vercel
 
 ```bash
