@@ -52,7 +52,7 @@ def print_step(text):
 # =============================================================================
 
 def load_genome(genome_path: Path) -> tuple:
-    """Load 23andMe genome file into dictionaries."""
+    """Load 23andMe/Ancestry genome file into dictionaries."""
     print_step(f"Loading genome from {genome_path}")
 
     genome_by_rsid = {}
@@ -63,19 +63,31 @@ def load_genome(genome_path: Path) -> tuple:
             if line.startswith('#'):
                 continue
             parts = line.strip().split('\t')
-            if len(parts) >= 4:
-                rsid, chrom, pos, genotype = parts[0], parts[1], parts[2], parts[3]
-                if genotype != '--':
-                    genome_by_rsid[rsid] = {
-                        'chromosome': chrom,
-                        'position': pos,
-                        'genotype': genotype
-                    }
-                    pos_key = f"{chrom}:{pos}"
-                    genome_by_position[pos_key] = {
-                        'rsid': rsid,
-                        'genotype': genotype
-                    }
+            if len(parts) < 4:
+                continue
+
+            rsid, chrom, pos = parts[0], parts[1], parts[2]
+
+            if len(parts) >= 5:
+                # Ancestry style: allele1 + allele2
+                genotype = f"{parts[3]}{parts[4]}"
+            else:
+                # 23andMe style: single genotype column
+                genotype = parts[3]
+
+            if genotype == '--':
+                continue
+
+            genome_by_rsid[rsid] = {
+                'chromosome': chrom,
+                'position': pos,
+                'genotype': genotype
+            }
+            pos_key = f"{chrom}:{pos}"
+            genome_by_position[pos_key] = {
+                'rsid': rsid,
+                'genotype': genotype
+            }
 
     print(f"    Loaded {len(genome_by_rsid):,} SNPs")
     return genome_by_rsid, genome_by_position
@@ -1096,7 +1108,7 @@ It is NOT a clinical diagnosis or medical advice.
 # MAIN PIPELINE
 # =============================================================================
 
-def run_full_analysis(genome_path: Path = None, subject_name: str = None):
+def run_full_analysis(genome_path: Path = None, subject_name: str = None, output_dir: Path = None):
     """Run the complete genetic analysis pipeline."""
 
     print_header("FULL GENETIC HEALTH ANALYSIS")
@@ -1112,7 +1124,8 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
         sys.exit(1)
 
     # Create reports directory
-    REPORTS_DIR.mkdir(exist_ok=True)
+    reports_dir = output_dir if output_dir else REPORTS_DIR
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
     # Load genome
     genome_by_rsid, genome_by_position = load_genome(genome_path)
@@ -1129,12 +1142,12 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
         'pharmgkb_findings': health_results['pharmgkb_findings'],
         'summary': health_results['summary'],
     }
-    intermediate_path = REPORTS_DIR / "comprehensive_results.json"
+    intermediate_path = reports_dir / "comprehensive_results.json"
     with open(intermediate_path, 'w') as f:
         json.dump(results_json, f, indent=2)
 
     # Generate exhaustive genetic report
-    genetic_report_path = REPORTS_DIR / "EXHAUSTIVE_GENETIC_REPORT.md"
+    genetic_report_path = reports_dir / "EXHAUSTIVE_GENETIC_REPORT.md"
     generate_exhaustive_genetic_report(health_results, genetic_report_path, subject_name)
 
     # Run disease risk analysis
@@ -1142,17 +1155,17 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
 
     # Generate disease risk report
     if disease_findings:
-        disease_report_path = REPORTS_DIR / "EXHAUSTIVE_DISEASE_RISK_REPORT.md"
+        disease_report_path = reports_dir / "EXHAUSTIVE_DISEASE_RISK_REPORT.md"
         generate_disease_risk_report(disease_findings, disease_stats, len(genome_by_rsid),
                                       disease_report_path, subject_name)
 
     # Generate actionable protocol - use versioned filename
-    protocol_path = REPORTS_DIR / "ACTIONABLE_HEALTH_PROTOCOL_V3.md"
+    protocol_path = reports_dir / "ACTIONABLE_HEALTH_PROTOCOL_V3.md"
     generate_actionable_protocol(health_results, disease_findings, protocol_path, subject_name)
 
     # Summary
     print_header("ANALYSIS COMPLETE")
-    print(f"\nReports generated in: {REPORTS_DIR}")
+    print(f"\nReports generated in: {reports_dir}")
     print(f"\n  1. EXHAUSTIVE_GENETIC_REPORT.md")
     print(f"     - {len(health_results['findings'])} lifestyle/health findings")
     print(f"     - {len(health_results['pharmgkb_findings'])} drug-gene interactions")
@@ -1174,7 +1187,8 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
     return {
         'health_results': health_results,
         'disease_findings': disease_findings,
-        'disease_stats': disease_stats
+        'disease_stats': disease_stats,
+        'reports_dir': reports_dir,
     }
 
 
