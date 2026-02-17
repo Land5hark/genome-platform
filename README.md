@@ -5,9 +5,9 @@ A genome intelligence platform for health insights and genetic analysis.
 ## What works now
 
 - Dark-mode landing page with built-in DNA upload/analyze flow (`index.html` + `api/analyze.py`)
+- Async job API with SQLite-backed job table and background worker loop
 - End-to-end analysis via existing Python pipeline in `Genetic Health/scripts/run_full_analysis.py`
-- API writes report artifacts to an isolated temp directory per request (serverless-safe)
-- ZIP download containing generated report files
+- API writes report artifacts to isolated runtime directories and serves downloadable ZIP bundles
 
 ## Data prerequisites
 
@@ -18,7 +18,7 @@ Required for core analysis:
 Optional for disease-risk section:
 - `Genetic Health/data/clinvar_alleles.tsv`
 
-You can verify readiness using:
+You can verify readiness and queue status using:
 
 ```bash
 curl http://localhost:8000/api/health
@@ -35,6 +35,14 @@ python api/analyze.py
 
 Then open `http://localhost:8000` and upload a raw DNA file (e.g., `AncestryDNA.txt`).
 
+## API endpoints
+
+- `POST /api/jobs` — enqueue analysis (multipart: `genome_file`, optional `subject_name`)
+- `GET /api/jobs/<job_id>` — poll job status
+- `GET /api/jobs/<job_id>/download` — download ZIP after completion
+- `POST /api/analyze` — backward-compatible alias to `POST /api/jobs`
+- `GET /api/health` — dataset + queue diagnostics
+
 ## Deploy to Vercel
 
 ```bash
@@ -44,13 +52,12 @@ vercel
 
 Routes:
 - `/` → landing page UI
-- `/api/analyze` → analysis endpoint (multipart form: `genome_file`, optional `subject_name`)
-- `/api/health` → dataset readiness / service health
+- `/api/*` → Python API
 
 ## Notes for production
 
-- Current API is synchronous; for high traffic or large workloads, move analysis to queued background jobs.
-- Uploads are currently limited to 25MB via Flask `MAX_CONTENT_LENGTH`.
+- Current queue uses local SQLite + in-process worker thread; for multi-instance production, move to Redis/Postgres + external worker.
+- Uploads are limited to 25MB via Flask `MAX_CONTENT_LENGTH`.
 
 ## Project docs
 

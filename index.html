@@ -646,31 +646,54 @@
         const form = document.getElementById('analyzeForm');
         const statusEl = document.getElementById('status');
 
+        async function wait(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            statusEl.textContent = 'Running analysis... this can take up to a minute.';
+            statusEl.textContent = 'Uploading DNA file and queuing analysis...';
 
             const formData = new FormData(form);
             try {
-                const response = await fetch('/api/analyze', {
+                const enqueueResponse = await fetch('/api/jobs', {
                     method: 'POST',
                     body: formData,
                 });
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(text || 'Analysis failed');
+                const enqueuePayload = await enqueueResponse.json();
+                if (!enqueueResponse.ok || !enqueuePayload.job?.id) {
+                    throw new Error(enqueuePayload.error || 'Failed to enqueue analysis job');
                 }
 
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'genome-analysis.zip';
-                a.click();
-                URL.revokeObjectURL(url);
+                const jobId = enqueuePayload.job.id;
+                statusEl.textContent = `Job queued (${jobId.slice(0, 8)}...). Processing...`;
 
-                statusEl.textContent = 'Done. Download started.';
+                while (true) {
+                    await wait(2000);
+                    const statusResponse = await fetch(`/api/jobs/${jobId}`);
+                    const statusPayload = await statusResponse.json();
+                    if (!statusResponse.ok) {
+                        throw new Error(statusPayload.error || 'Failed to read job status');
+                    }
+
+                    const job = statusPayload.job;
+                    if (job.status === 'failed') {
+                        throw new Error(job.error || 'Analysis job failed');
+                    }
+
+                    if (job.status === 'completed') {
+                        statusEl.textContent = 'Analysis complete. Downloading your report bundle...';
+                        const a = document.createElement('a');
+                        a.href = job.download_url;
+                        a.download = `genome-analysis-${jobId}.zip`;
+                        a.click();
+                        statusEl.textContent = 'Done. Download started.';
+                        break;
+                    }
+
+                    statusEl.textContent = `Job status: ${job.status}...`;
+                }
             } catch (err) {
                 statusEl.textContent = `Error: ${err.message}`;
             }
