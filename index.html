@@ -567,6 +567,160 @@
                 </form>
                 <div id="status"></div>
             </div>
+
+            <!-- Teaser results panel (hidden until analysis completes) -->
+            <div id="resultsPanel" style="display:none; margin-top:48px;">
+                <div class="section-header" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.6rem;">Here's What We Found</h2>
+                    <p id="statsBar" style="color:#a1a1aa; font-size:0.95rem;"></p>
+                </div>
+
+                <div id="teaserCards" style="display:grid; gap:20px; margin-bottom:40px;"></div>
+
+                <!-- Step 1: Initial CTA -->
+                <div id="ctaBox" style="text-align:center; background:linear-gradient(135deg,#18181b,#27272a); border:1px solid #3f3f46; border-radius:16px; padding:40px 32px;">
+                    <p style="color:#a1a1aa; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Your full analysis is ready</p>
+                    <h3 style="font-size:1.5rem; margin-bottom:12px;">Unlock Everything — $79</h3>
+                    <p style="color:#a1a1aa; max-width:480px; margin:0 auto 24px; line-height:1.6;">
+                        Get all 4 personalized reports: Genetic Health deep-dive, Disease Risk Screen,
+                        Actionable Health Protocol, and a plain-English Master Summary written so
+                        anyone can understand it.
+                    </p>
+                    <button id="unlockBtn" class="btn-primary btn-lg" style="font-size:1.1rem; padding:14px 40px;">
+                        Unlock My Full Report — $79
+                    </button>
+                    <p style="color:#52525b; font-size:0.78rem; margin-top:16px;">
+                        Secure checkout · Instant download · 4 reports included
+                    </p>
+                </div>
+
+                <!-- Step 2: Order bump panel (shown after clicking Unlock) -->
+                <div id="orderPanel" style="display:none;">
+                    <style>
+                        .order-bump { background:#0f0f10; border:1px solid #3f3f46; border-radius:16px; overflow:hidden; }
+                        .order-bump-header { background:linear-gradient(135deg,#3b0764,#1e1b4b); padding:24px 28px; }
+                        .order-bump-header h3 { font-size:1.2rem; margin-bottom:4px; }
+                        .order-bump-header p { color:#a5b4fc; font-size:0.88rem; margin:0; }
+                        .order-base { display:flex; align-items:center; gap:14px; padding:20px 28px; border-bottom:1px solid #27272a; background:#18181b; }
+                        .order-base-check { color:#4ade80; font-size:1.3rem; flex-shrink:0; }
+                        .order-base-label { flex:1; }
+                        .order-base-label strong { font-size:0.95rem; }
+                        .order-base-label p { color:#71717a; font-size:0.8rem; margin:2px 0 0; }
+                        .order-base-price { color:#4ade80; font-weight:700; font-size:1rem; flex-shrink:0; }
+                        .addons-header { padding:14px 28px 10px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; border-bottom:1px solid #1f1f23; }
+                        .addon-row { display:flex; align-items:flex-start; gap:14px; padding:18px 28px; border-bottom:1px solid #1f1f23; cursor:pointer; transition:background 0.15s; }
+                        .addon-row:hover { background:#18181b; }
+                        .addon-row.featured { background:linear-gradient(135deg,#0f172a,#1e1b4b); border-left:3px solid #6366f1; }
+                        .addon-row input[type=checkbox] { margin-top:3px; flex-shrink:0; width:17px; height:17px; accent-color:#7c3aed; cursor:pointer; }
+                        .addon-icon { font-size:1.5rem; flex-shrink:0; width:32px; text-align:center; }
+                        .addon-body { flex:1; }
+                        .addon-body strong { font-size:0.93rem; display:block; margin-bottom:4px; }
+                        .addon-body p { color:#a1a1aa; font-size:0.82rem; line-height:1.5; margin:0 0 4px; }
+                        .addon-body .was { color:#52525b; font-size:0.78rem; text-decoration:line-through; }
+                        .addon-price { color:#e4e4e7; font-weight:700; font-size:0.95rem; flex-shrink:0; white-space:nowrap; }
+                        .addon-price .per { font-size:0.72rem; font-weight:400; color:#71717a; }
+                        .deep-dive-wrap { padding:0 0 0 60px; border-bottom:1px solid #1f1f23; }
+                        .deep-dive-wrap .addon-row { border-bottom:none; padding-left:0; }
+                        .order-total-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 28px; background:#18181b; flex-wrap:wrap; gap:14px; }
+                        .order-total-bar .total-label { font-size:0.85rem; color:#a1a1aa; }
+                        .order-total-bar .total-amount { font-size:1.4rem; font-weight:800; color:#fff; }
+                        .order-total-bar .total-sub { font-size:0.75rem; color:#52525b; margin-top:2px; }
+                        #proceedBtn { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; border-radius:8px; padding:13px 32px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+                        #proceedBtn:hover { opacity:0.9; }
+                        #proceedBtn:disabled { opacity:0.5; cursor:not-allowed; }
+                    </style>
+
+                    <div class="order-bump">
+                        <div class="order-bump-header">
+                            <h3>Complete Your Order</h3>
+                            <p>You're one step away — customize your package below before checkout.</p>
+                        </div>
+
+                        <!-- Base item (always included) -->
+                        <div class="order-base">
+                            <span class="order-base-check">✅</span>
+                            <div class="order-base-label">
+                                <strong>Full Genome Analysis — 4 Reports</strong>
+                                <p>Genetic Health · Disease Risk · Actionable Protocol · Plain-English Master Summary</p>
+                            </div>
+                            <span class="order-base-price">$79</span>
+                        </div>
+
+                        <div class="addons-header">Enhance your order</div>
+
+                        <!-- Add-on: Pretty Print -->
+                        <label class="addon-row" for="addon_pretty">
+                            <input type="checkbox" id="addon_pretty" data-price="19">
+                            <span class="addon-icon">🖨️</span>
+                            <div class="addon-body">
+                                <strong>Print-Ready Formatted Reports</strong>
+                                <p>Beautifully styled HTML versions of all 4 reports — designed to look great on screen and print perfectly. Share with your doctor or keep for your records.</p>
+                            </div>
+                            <div class="addon-price">+$19</div>
+                        </label>
+
+                        <!-- Add-on: Partner Report -->
+                        <label class="addon-row" for="addon_partner">
+                            <input type="checkbox" id="addon_partner" data-price="39">
+                            <span class="addon-icon">👥</span>
+                            <div class="addon-body">
+                                <strong>Partner or Family Member Report</strong>
+                                <p>Analyze a second DNA file — partner, parent, or sibling. Unlock your family's genetic picture together.</p>
+                                <span class="was">Normally $79</span>
+                            </div>
+                            <div class="addon-price">+$39</div>
+                        </label>
+
+                        <!-- Add-on: Annual Updates -->
+                        <label class="addon-row" for="addon_annual">
+                            <input type="checkbox" id="addon_annual" data-price="29" data-recurring="true">
+                            <span class="addon-icon">🔄</span>
+                            <div class="addon-body">
+                                <strong>Annual DNA Updates</strong>
+                                <p>Genetic research evolves every year. As new SNP associations are discovered, we'll re-run your analysis and deliver fresh updated reports automatically.</p>
+                            </div>
+                            <div class="addon-price">+$29<span class="per">/yr</span></div>
+                        </label>
+
+                        <!-- Nested: Raw Data Deep Dive (only shown when annual is checked) -->
+                        <div id="deepDiveWrap" class="deep-dive-wrap" style="display:none;">
+                            <label class="addon-row featured" for="addon_deep_dive">
+                                <input type="checkbox" id="addon_deep_dive" data-price="49">
+                                <span class="addon-icon">🧪</span>
+                                <div class="addon-body">
+                                    <strong>Raw Data Deep Dive — Subscribers Only</strong>
+                                    <p>Expanded analysis with 3× more SNPs screened, full ClinVar rare variant coverage, and pharmacogenomics at depth. The most complete picture of your genome available anywhere.</p>
+                                    <span class="was">Exclusive to annual subscribers</span>
+                                </div>
+                                <div class="addon-price">+$49</div>
+                            </label>
+                        </div>
+
+                        <!-- Total + proceed -->
+                        <div class="order-total-bar">
+                            <div>
+                                <div class="total-label">Order total</div>
+                                <div class="total-amount" id="orderTotal">$79</div>
+                                <div class="total-sub" id="orderSub">one-time</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <button id="proceedBtn">Proceed to Checkout →</button>
+                                <div style="font-size:0.72rem; color:#52525b; margin-top:6px;">Secure checkout · Instant download</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success / download panel (shown after payment) -->
+            <div id="successPanel" style="display:none; margin-top:48px; text-align:center;">
+                <div style="background:linear-gradient(135deg,#052e16,#14532d); border:1px solid #16a34a; border-radius:16px; padding:48px 32px;">
+                    <div style="font-size:3rem; margin-bottom:16px;">✅</div>
+                    <h3 style="font-size:1.4rem; margin-bottom:12px; color:#4ade80;">Payment Confirmed!</h3>
+                    <p id="downloadStatus" style="color:#a1a1aa; margin-bottom:24px;">Generating your personalized reports… this takes about 30 seconds.</p>
+                    <div id="downloadSpinner" style="font-size:1.5rem;">⏳</div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -603,18 +757,6 @@
                     </ul>
                     <button class="btn-primary btn-full" data-scroll="#analyze">Unlock for $79</button>
                 </div>
-                <div class="pricing-card">
-                    <h3>Consultation</h3>
-                    <div class="price">$199</div>
-                    <p class="price-description">Full analysis + expert review</p>
-                    <ul class="features">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Everything in Complete</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> 30-min expert consultation</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Custom action plan</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
-                    </ul>
-                    <button class="btn-outline btn-full" data-scroll="#analyze">Get Consultation</button>
-                </div>
             </div>
         </div>
     </section>
@@ -634,47 +776,220 @@
     </footer>
 
     <script>
+        // Smooth scroll for data-scroll buttons
         document.querySelectorAll('[data-scroll]').forEach((node) => {
             node.addEventListener('click', () => {
                 const target = document.querySelector(node.getAttribute('data-scroll'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
 
-        const form = document.getElementById('analyzeForm');
-        const statusEl = document.getElementById('status');
+        // ── State ────────────────────────────────────────────────────────────
+        let currentAnalysisId = null;
+        let currentSubjectName = null;
 
+        // ── Elements ─────────────────────────────────────────────────────────
+        const form          = document.getElementById('analyzeForm');
+        const statusEl      = document.getElementById('status');
+        const resultsPanel  = document.getElementById('resultsPanel');
+        const teaserCards   = document.getElementById('teaserCards');
+        const statsBar      = document.getElementById('statsBar');
+        const unlockBtn     = document.getElementById('unlockBtn');
+        const successPanel  = document.getElementById('successPanel');
+        const downloadStatus = document.getElementById('downloadStatus');
+        const downloadSpinner = document.getElementById('downloadSpinner');
+
+        // ── Analysis submit ───────────────────────────────────────────────────
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            statusEl.textContent = 'Running analysis... this can take up to a minute.';
+            statusEl.textContent = 'Running analysis… this can take up to a minute.';
+            statusEl.style.color = '#a1a1aa';
+            resultsPanel.style.display = 'none';
 
             const formData = new FormData(form);
-            try {
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    body: formData,
-                });
+            currentSubjectName = formData.get('subject_name') || null;
+            // Pass referral code if visitor arrived via a ref link
+            const fromRef = new URLSearchParams(window.location.search).get('ref');
+            if (fromRef) formData.append('from_ref', fromRef);
 
+            try {
+                const response = await fetch('/api/analyze', { method: 'POST', body: formData });
                 if (!response.ok) {
                     const text = await response.text();
                     throw new Error(text || 'Analysis failed');
                 }
-
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'genome-analysis.zip';
-                a.click();
-                URL.revokeObjectURL(url);
-
-                statusEl.textContent = 'Done. Download started.';
+                const data = await response.json();
+                currentAnalysisId = data.analysis_id;
+                statusEl.textContent = '';
+                showTeasers(data);
             } catch (err) {
                 statusEl.textContent = `Error: ${err.message}`;
+                statusEl.style.color = '#f87171';
             }
         });
+
+        // ── Render teaser cards ───────────────────────────────────────────────
+        function showTeasers(data) {
+            const s = data.stats || {};
+            const parts = [];
+            if (s.snps_analyzed) parts.push(`${s.snps_analyzed.toLocaleString()} SNPs analyzed`);
+            if (s.high_impact)   parts.push(`${s.high_impact} high-impact findings`);
+            if (s.drug_interactions) parts.push(`${s.drug_interactions} drug interactions`);
+            if (s.disease_variants)  parts.push(`${s.disease_variants} disease variants`);
+            statsBar.textContent = parts.join(' · ');
+
+            teaserCards.innerHTML = '';
+            (data.teaser || []).forEach(card => {
+                const el = document.createElement('div');
+                el.style.cssText = `
+                    background:#18181b; border:1px solid #3f3f46; border-radius:12px;
+                    padding:24px 28px; position:relative; overflow:hidden;
+                `;
+                el.innerHTML = `
+                    <div style="display:flex; align-items:flex-start; gap:16px;">
+                        <span style="font-size:1.8rem; line-height:1;">${card.icon}</span>
+                        <div>
+                            <h4 style="font-size:1.05rem; margin-bottom:8px;">${card.title}</h4>
+                            <p style="color:#a1a1aa; line-height:1.6; margin-bottom:12px;">${card.body}</p>
+                            <p style="color:#7c3aed; font-style:italic; font-size:0.9rem;">
+                                🔒 ${card.hook}
+                            </p>
+                        </div>
+                    </div>
+                    <div style="position:absolute; top:0; right:0; bottom:0; width:4px;
+                                background:linear-gradient(180deg,#7c3aed,#4f46e5);"></div>
+                `;
+                teaserCards.appendChild(el);
+            });
+
+            resultsPanel.style.display = 'block';
+            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── Step 1: Unlock button → show order bump panel ─────────────────────
+        const ctaBox      = document.getElementById('ctaBox');
+        const orderPanel  = document.getElementById('orderPanel');
+        const proceedBtn  = document.getElementById('proceedBtn');
+        const orderTotal  = document.getElementById('orderTotal');
+        const orderSub    = document.getElementById('orderSub');
+        const deepDiveWrap = document.getElementById('deepDiveWrap');
+        const annualChk   = document.getElementById('addon_annual');
+        const deepChk     = document.getElementById('addon_deep_dive');
+
+        unlockBtn.addEventListener('click', () => {
+            if (!currentAnalysisId) return;
+            ctaBox.style.display = 'none';
+            orderPanel.style.display = 'block';
+            orderPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // ── Order bump: live total + nested deep dive reveal ──────────────────
+        function recalcTotal() {
+            let oneTime = 79;
+            let recurring = 0;
+            let hasRecurring = false;
+            document.querySelectorAll('#orderPanel input[type=checkbox]').forEach(cb => {
+                if (!cb.checked) return;
+                const price = parseInt(cb.dataset.price || '0');
+                if (cb.dataset.recurring) { recurring += price; hasRecurring = true; }
+                else oneTime += price;
+            });
+            if (hasRecurring) {
+                orderTotal.textContent = `$${oneTime} + $${recurring}/yr`;
+                orderSub.textContent = 'then $' + recurring + '/yr after';
+            } else {
+                orderTotal.textContent = `$${oneTime}`;
+                orderSub.textContent = 'one-time';
+            }
+        }
+
+        annualChk.addEventListener('change', () => {
+            deepDiveWrap.style.display = annualChk.checked ? 'block' : 'none';
+            if (!annualChk.checked) deepChk.checked = false;
+            recalcTotal();
+        });
+
+        document.querySelectorAll('#orderPanel input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', recalcTotal);
+        });
+
+        // ── Step 2: Proceed to Stripe checkout ────────────────────────────────
+        proceedBtn.addEventListener('click', async () => {
+            if (!currentAnalysisId) return;
+            proceedBtn.textContent = 'Redirecting to checkout…';
+            proceedBtn.disabled = true;
+
+            const addOns = [];
+            if (document.getElementById('addon_pretty').checked)    addOns.push('pretty_print');
+            if (document.getElementById('addon_partner').checked)   addOns.push('partner');
+            if (document.getElementById('addon_annual').checked)    addOns.push('annual');
+            if (document.getElementById('addon_deep_dive').checked) addOns.push('deep_dive');
+
+            try {
+                const resp = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        analysis_id: currentAnalysisId,
+                        subject_name: currentSubjectName || 'report',
+                        add_ons: addOns,
+                    }),
+                });
+                if (!resp.ok) throw new Error('Checkout session failed');
+                const { checkout_url } = await resp.json();
+                window.location.href = checkout_url;
+            } catch (err) {
+                proceedBtn.textContent = 'Proceed to Checkout →';
+                proceedBtn.disabled = false;
+                statusEl.textContent = `Checkout error: ${err.message}`;
+                statusEl.style.color = '#f87171';
+            }
+        });
+
+        // ── Success page: auto-download after Stripe redirect ─────────────────
+        (async function handleSuccess() {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId   = params.get('session_id');
+            const analysisId  = params.get('analysis_id');
+            const subjectName = params.get('subject_name') || 'report';
+            const addOnsParam = params.get('add_ons') || '';
+            if (!sessionId || !analysisId) return;
+
+            const addOns = addOnsParam ? addOnsParam.split(',') : [];
+            const extras = [];
+            if (addOns.includes('pretty_print')) extras.push('print-ready HTML reports');
+            if (addOns.includes('partner'))      extras.push('partner report instructions');
+            if (addOns.includes('annual'))       extras.push('annual updates activated');
+            if (addOns.includes('deep_dive'))    extras.push('raw data deep dive');
+            const extrasNote = extras.length ? ` + ${extras.join(', ')}` : '';
+
+            // Hide upload form, show success panel
+            document.getElementById('analyzeForm').closest('section').style.display = 'none';
+            successPanel.style.display = 'block';
+            successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            downloadStatus.textContent = `Generating your personalized reports${extrasNote}… this takes about 30 seconds.`;
+
+            try {
+                const url = `/api/complete?session_id=${encodeURIComponent(sessionId)}&analysis_id=${encodeURIComponent(analysisId)}&subject_name=${encodeURIComponent(subjectName)}`;
+                const resp = await fetch(url);
+                if (!resp.ok) {
+                    const txt = await resp.text();
+                    throw new Error(txt || 'Download failed');
+                }
+                const blob = await resp.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `genome-analysis-${subjectName}.zip`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+
+                downloadStatus.textContent = 'Your reports are downloading now. Check your Downloads folder!';
+                downloadSpinner.textContent = '🎉';
+            } catch (err) {
+                downloadStatus.textContent = `Something went wrong: ${err.message}`;
+                downloadSpinner.textContent = '❌';
+            }
+        })();
     </script>
 </body>
 </html>

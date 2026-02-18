@@ -137,3 +137,11 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Genome platform
+.venv/
+.sessions/
+Genetic Health/reports/
+referrals.json
+__pycache__/
+*.pyc

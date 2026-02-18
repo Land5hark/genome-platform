@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your Genome Is Being Processed — Genome Intelligence</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#09090b; --surface:#18181b; --border:#27272a;
+    --text:#e4e4e7; --muted:#71717a;
+    --accent:#7c3aed; --accent2:#4f46e5;
+    --green:#4ade80; --green-dark:#16a34a;
+  }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; padding:40px 20px 80px;
+  }
+  .logo {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:48px; text-decoration:none; color:var(--text);
+  }
+  .logo svg { width:28px; height:28px; color:var(--accent); }
+  .logo span { font-weight:700; font-size:1.1rem; letter-spacing:-0.02em; }
+
+  /* ── Main card ── */
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:48px 40px;
+    max-width:620px; width:100%; text-align:center;
+  }
+
+  /* ── DNA spinner ── */
+  .dna-wrap {
+    position:relative; width:80px; height:80px;
+    margin:0 auto 32px;
+  }
+  .ring {
+    position:absolute; inset:0; border-radius:50%;
+    border:3px solid transparent;
+    animation:spin 1.6s linear infinite;
+  }
+  .ring:nth-child(1){ border-top-color:var(--accent); border-right-color:var(--accent); }
+  .ring:nth-child(2){ border-bottom-color:var(--accent2); border-left-color:var(--accent2);
+                      animation-direction:reverse; animation-duration:2.2s; inset:10px; }
+  .ring:nth-child(3){ border-top-color:#06b6d4; inset:20px; animation-duration:1.1s; }
+  .center-dot { position:absolute; inset:0; display:flex; align-items:center;
+                justify-content:center; font-size:1.6rem; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .done-badge {
+    display:none; width:80px; height:80px; margin:0 auto 24px;
+    background:linear-gradient(135deg,#052e16,#14532d);
+    border:2px solid var(--green-dark); border-radius:50%;
+    align-items:center; justify-content:center; font-size:2rem;
+  }
+
+  .status-title {
+    font-size:1.6rem; font-weight:800; margin-bottom:12px;
+    background:linear-gradient(135deg,#c4b5fd,#818cf8);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .status-sub {
+    color:var(--muted); font-size:0.95rem; line-height:1.6;
+    max-width:440px; margin:0 auto 32px;
+  }
+
+  /* ── Steps ── */
+  .steps { display:flex; flex-direction:column; gap:12px; text-align:left; }
+  .step {
+    display:flex; align-items:center; gap:14px;
+    padding:12px 16px; background:#0f0f10;
+    border:1px solid var(--border); border-radius:10px;
+    font-size:0.9rem; transition:border-color 0.3s, background 0.3s;
+  }
+  .step.active { border-color:var(--accent); background:rgba(124,58,237,0.08); }
+  .step.done   { border-color:var(--green-dark); background:rgba(22,163,74,0.06); }
+  .step-icon { font-size:1.2rem; width:28px; text-align:center; flex-shrink:0; }
+  .step-label { flex:1; }
+  .step-indicator { flex-shrink:0; width:22px; text-align:center; }
+  .spinner {
+    width:16px; height:16px; border:2px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin 0.8s linear infinite; margin:auto;
+  }
+  .check { color:var(--green); font-weight:700; }
+
+  /* ── Referral section ── */
+  .referral-section {
+    display:none; margin-top:48px;
+    max-width:620px; width:100%;
+  }
+  .ref-card {
+    background:linear-gradient(135deg,#1e1b4b,#0f172a);
+    border:1px solid #3730a3; border-radius:20px; padding:40px; text-align:center;
+  }
+  .ref-badge {
+    display:inline-block;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; font-size:0.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.1em;
+    padding:4px 12px; border-radius:100px; margin-bottom:16px;
+  }
+  .ref-card h2 { font-size:1.4rem; margin-bottom:12px; color:#fff; }
+  .ref-card > p {
+    color:#a5b4fc; font-size:0.9rem; line-height:1.6;
+    max-width:420px; margin:0 auto 28px;
+  }
+  .ref-link-box {
+    display:flex; gap:10px; background:#0f0f10;
+    border:1px solid #3730a3; border-radius:10px;
+    padding:12px 16px; margin-bottom:16px; align-items:center;
+  }
+  .ref-link-box code {
+    flex:1; font-family:monospace; font-size:0.88rem;
+    color:#c7d2fe; word-break:break-all; text-align:left;
+  }
+  .copy-btn {
+    background:var(--accent); color:#fff; border:none;
+    border-radius:7px; padding:7px 16px; font-size:0.82rem;
+    font-weight:600; cursor:pointer; flex-shrink:0; transition:opacity 0.2s;
+  }
+  .copy-btn:hover { opacity:0.85; }
+  .copy-btn.copied { background:var(--green-dark); }
+
+  .how-it-works { display:flex; gap:16px; margin-top:28px; }
+  .hiw {
+    flex:1; background:rgba(255,255,255,0.03);
+    border:1px solid rgba(99,102,241,0.2);
+    border-radius:10px; padding:16px 12px; text-align:center;
+  }
+  .hiw .icon { font-size:1.4rem; margin-bottom:8px; }
+  .hiw strong { color:#fff; display:block; margin-bottom:4px; font-size:0.85rem; }
+  .hiw span { font-size:0.78rem; color:#a5b4fc; line-height:1.4; }
+
+  .share-row { display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .share-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 18px; border-radius:8px; font-size:0.83rem;
+    font-weight:600; cursor:pointer; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); text-decoration:none;
+    transition:background 0.15s;
+  }
+  .share-btn:hover { background:#27272a; }
+  .share-btn.x { border-color:#1d9bf0; color:#1d9bf0; }
+  .share-btn.x:hover { background:rgba(29,155,240,0.08); }
+
+  .footer-note {
+    margin-top:40px; color:var(--muted); font-size:0.78rem;
+    text-align:center; max-width:480px; line-height:1.6;
+  }
+  .footer-note a { color:var(--accent); }
+
+  @media (max-width:520px) {
+    .card, .ref-card { padding:28px 20px; }
+    .how-it-works { flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<a class="logo" href="/">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 15c6.667-6 13.333 0 20-6"/>
+    <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/>
+    <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/>
+  </svg>
+  <span>Genome Intelligence</span>
+</a>
+
+<div class="card">
+  <!-- Spinner (hidden once done) -->
+  <div class="dna-wrap" id="dnaWrap">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="center-dot">🧬</div>
+  </div>
+
+  <!-- Done badge (shown once done) -->
+  <div class="done-badge" id="doneBadge">🎉</div>
+
+  <div class="status-title" id="statusTitle">Processing Your Genome</div>
+  <p class="status-sub" id="statusSub">
+    Generating your personalized reports and writing your plain&#8209;English summary.
+    Your download will begin automatically — usually within 30&nbsp;seconds.
+  </p>
+
+  <div class="steps">
+    <div class="step done" id="s1">
+      <span class="step-icon">💳</span>
+      <span class="step-label">Payment confirmed</span>
+      <span class="step-indicator check">✓</span>
+    </div>
+    <div class="step active" id="s2">
+      <span class="step-icon">🔬</span>
+      <span class="step-label">Compiling personalized reports</span>
+      <span class="step-indicator"><div class="spinner"></div></span>
+    </div>
+    <div class="step" id="s3">
+      <span class="step-icon">✍️</span>
+      <span class="step-label">Writing plain&#8209;English master summary</span>
+      <span class="step-indicator"></span>
+    </div>
+    <div class="step" id="s4">
+      <span class="step-icon">📦</span>
+      <span class="step-label">Packaging your download</span>
+      <span class="step-indicator"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Referral section — revealed after download -->
+<div class="referral-section" id="referralSection">
+  <div class="ref-card">
+    <div class="ref-badge">💰 Earn With Genome Intelligence</div>
+    <h2>Your Reports Are Downloading — Now Share &amp; Earn</h2>
+    <p>
+      Know someone who had a DNA test and has no idea what to do with the data?
+      Share your link. Every time someone purchases through it,
+      <strong style="color:#c7d2fe;">you earn $20 cash</strong> — paid monthly.
+    </p>
+
+    <div class="ref-link-box">
+      <code id="refLinkText">loading…</code>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+
+    <div class="how-it-works">
+      <div class="hiw">
+        <div class="icon">🔗</div>
+        <strong>Share Your Link</strong>
+        <span>Post anywhere — social, group chats, Reddit, wherever</span>
+      </div>
+      <div class="hiw">
+        <div class="icon">🛒</div>
+        <strong>They Purchase</strong>
+        <span>Any plan counts, even the $79 base report</span>
+      </div>
+      <div class="hiw">
+        <div class="icon">💸</div>
+        <strong>You Earn $20</strong>
+        <span>Paid monthly via PayPal or Venmo, no minimum</span>
+      </div>
+    </div>
+
+    <div class="share-row">
+      <a class="share-btn x" id="twitterShare" href="#" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+        Share on X
+      </a>
+      <button class="share-btn" id="copyBtn2">📋 Copy Link</button>
+    </div>
+
+    <p style="color:#4b5563;font-size:0.75rem;margin-top:20px;line-height:1.5;">
+      No sign-up required. Commissions are tracked automatically via your referral code.
+      We'll reach out once your first referral converts.
+    </p>
+  </div>
+</div>
+
+<p class="footer-note">
+  If your download doesn't start within 2 minutes,
+  <a href="/">return to the homepage</a> and contact support.
+  Your purchase is saved — we'll make it right.
+</p>
+
+<script>
+  const params      = new URLSearchParams(window.location.search);
+  const sessionId   = params.get('session_id')  || '';
+  const analysisId  = params.get('analysis_id') || '';
+  const subjectName = params.get('subject_name') || 'report';
+
+  // Referral code: first 10 hex chars of analysis UUID
+  const myRef   = analysisId.replace(/-/g, '').slice(0, 10);
+  const refLink = `${location.origin}/?ref=${myRef}`;
+
+  document.getElementById('refLinkText').textContent = refLink;
+  document.getElementById('twitterShare').href =
+    `https://twitter.com/intent/tweet` +
+    `?text=${encodeURIComponent('Just unlocked what my DNA actually means — way more useful than raw AncestryDNA data. Check it out 👇')}` +
+    `&url=${encodeURIComponent(refLink)}`;
+
+  function copyRef() {
+    navigator.clipboard.writeText(refLink).then(() => {
+      ['copyBtn','copyBtn2'].forEach(id => {
+        const b = document.getElementById(id);
+        const orig = b.textContent;
+        b.textContent = '✓ Copied!';
+        b.classList.add('copied');
+        setTimeout(() => { b.textContent = orig; b.classList.remove('copied'); }, 2000);
+      });
+    });
+  }
+  document.getElementById('copyBtn').onclick  = copyRef;
+  document.getElementById('copyBtn2').onclick = copyRef;
+
+  // ── Step helpers ──────────────────────────────────────────────────────────
+  function setStep(id, state) {
+    const el = document.getElementById(id);
+    el.className = `step ${state}`;
+    const ind = el.querySelector('.step-indicator');
+    if (state === 'active') {
+      ind.innerHTML = '<div class="spinner"></div>';
+    } else if (state === 'done') {
+      ind.innerHTML = '<span class="check">✓</span>';
+    } else {
+      ind.innerHTML = '';
+    }
+  }
+
+  // Animate step 3 after ~10s regardless (shows progress while Claude API runs)
+  const midTimer = setTimeout(() => setStep('s3', 'active'), 10000);
+
+  // ── Main download flow ────────────────────────────────────────────────────
+  (async () => {
+    if (!sessionId || !analysisId) {
+      document.getElementById('statusTitle').textContent = 'Something went wrong';
+      document.getElementById('statusSub').textContent =
+        'Missing order information. Please contact support with your order confirmation email.';
+      return;
+    }
+
+    try {
+      const url =
+        `/api/complete` +
+        `?session_id=${encodeURIComponent(sessionId)}` +
+        `&analysis_id=${encodeURIComponent(analysisId)}` +
+        `&subject_name=${encodeURIComponent(subjectName)}`;
+
+      const resp = await fetch(url);
+
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(msg || 'Report generation failed');
+      }
+
+      // Advance all remaining steps
+      clearTimeout(midTimer);
+      setStep('s2', 'done');
+      setStep('s3', 'done');
+      setStep('s4', 'active');
+
+      const blob = await resp.blob();
+      await new Promise(r => setTimeout(r, 400)); // let step 4 show briefly
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `genome-analysis-${subjectName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+
+      // Mark done
+      setStep('s4', 'done');
+      document.getElementById('dnaWrap').style.display = 'none';
+      document.getElementById('doneBadge').style.display = 'flex';
+      document.getElementById('statusTitle').textContent = 'Your Reports Are Ready!';
+      document.getElementById('statusSub').innerHTML =
+        `Your download has started — check your <strong>Downloads folder</strong> for ` +
+        `<em>genome-analysis-${subjectName}.zip</em>.`;
+
+      // Reveal affiliate section
+      const ref = document.getElementById('referralSection');
+      ref.style.display = 'block';
+      setTimeout(() => ref.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+
+    } catch (err) {
+      document.getElementById('statusTitle').textContent = 'Processing Error';
+      document.getElementById('statusSub').textContent =
+        `${err.message} — Your purchase is saved. Please contact support.`;
+    }
+  })();
+</script>
+
+</body>
+</html>
