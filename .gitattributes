@@ -1,3 +1,4 @@
-Genetic[[:space:]]Health/data/*.tsv filter=lfs diff=lfs merge=lfs -text
-Genetic[[:space:]]Health/data/*.tsv.gz filter=lfs diff=lfs merge=lfs -text
-Genetic[[:space:]]Health/data/*.zip filter=lfs diff=lfs merge=lfs -text
+# Keep data files as-is (no CRLF conversion)
+"Genetic Health/data/*.tsv" text eol=lf
+"Genetic Health/data/*.tsv.gz" binary
+"Genetic Health/data/*.zip" binary

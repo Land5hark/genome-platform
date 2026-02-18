@@ -142,6 +142,8 @@ vite.config.ts.timestamp-*
 .venv/
 .sessions/
 Genetic Health/reports/
+# clinvar_alleles.tsv is 289MB - decompressed at runtime from clinvar_alleles.tsv.gz
+Genetic Health/data/clinvar_alleles.tsv
 referrals.json
 __pycache__/
 *.pyc

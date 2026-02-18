@@ -234,6 +234,17 @@ def analyze_lifestyle_health(genome_by_rsid: dict, pharmgkb: dict) -> dict:
 def load_clinvar_and_analyze(genome_by_position: dict) -> tuple:
     """Load ClinVar and analyze for disease variants."""
     clinvar_path = DATA_DIR / "clinvar_alleles.tsv"
+    clinvar_gz_path = DATA_DIR / "clinvar_alleles.tsv.gz"
+
+    # Auto-decompress .gz if .tsv is not present (e.g. first run on Railway)
+    if not clinvar_path.exists() and clinvar_gz_path.exists():
+        import gzip
+        import shutil as _shutil
+        print("    Decompressing clinvar_alleles.tsv.gz (one-time setup)...")
+        with gzip.open(clinvar_gz_path, 'rb') as f_in, \
+             open(clinvar_path, 'wb') as f_out:
+            _shutil.copyfileobj(f_in, f_out)
+        print("    Done.")
 
     if not clinvar_path.exists():
         print("    ClinVar file not found, skipping disease risk analysis")
