@@ -104,9 +104,11 @@ def analyze_genome(genome: dict, pharmgkb: dict) -> dict:
                     'rsid': rsid,
                     'gene': info['gene'],
                     'category': info['category'],
+                    'trait': info['category'],
                     'genotype': genotype,
                     'status': variant_info['status'],
                     'description': variant_info['desc'],
+                    'summary': variant_info['desc'],
                     'magnitude': variant_info['magnitude'],
                     'note': info.get('note', ''),
                 }
@@ -127,7 +129,7 @@ def analyze_genome(genome: dict, pharmgkb: dict) -> dict:
             genotype = genome[rsid]['genotype']
             genotype_rev = genotype[::-1] if len(genotype) == 2 else genotype
             annotation = info['genotypes'].get(genotype) or info['genotypes'].get(genotype_rev)
-            if annotation and info['level'] in ['1A', '1B', '2A', '2B']:
+            if annotation and info['level'] in ['1A', '1B', '2A', '2B', '3', '4']:
                 finding = {
                     'rsid': rsid,
                     'gene': info['gene'],

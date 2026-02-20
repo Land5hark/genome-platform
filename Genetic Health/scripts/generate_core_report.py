@@ -10,7 +10,6 @@ EXCLUDES:
 Includes assertions to prevent contradictions with Deep Dive report.
 """
 
-from datetime import datetime
 from pathlib import Path
 
 
@@ -73,7 +72,12 @@ def filter_lifestyle_findings(findings: list) -> list:
         'metabolism', 'weight', 'glucose', 'insulin', 'fat',
         'cardiovascular', 'blood pressure', 'hypertension', 'ace',
         'sleep', 'circadian', 'melatonin',
-        'vitamin', 'mineral', 'nutrient'
+        'vitamin', 'mineral', 'nutrient',
+        'opioid', 'opiates', 'pain', 'codeine', 'tramadol', 'morphine',
+        'cyp2d6', 'oprm1', 'comt',
+        'drug metabolism', 'pharmacogenomic',
+        'neurotransmitter', 'dopamine', 'serotonin',
+        'immune', 'inflammation', 'clotting', 'coagulation',
     ]
 
     lifestyle_findings = []
@@ -97,7 +101,8 @@ def filter_lifestyle_findings(findings: list) -> list:
 
 def filter_pharma_quick_card(pharmgkb_findings: list) -> list:
     """
-    Filter PharmGKB to Level 1A/1B only, top 10 by clinical importance.
+    Filter PharmGKB to Level 1A/1B only. No arbitrary cap — show all
+    strong-evidence findings so nothing clinically useful gets dropped.
     """
     # Filter to Level 1A/1B
     level_1_findings = [
@@ -105,180 +110,85 @@ def filter_pharma_quick_card(pharmgkb_findings: list) -> list:
         if f.get('level', '').upper() in ['1A', '1B', 'LEVEL 1A', 'LEVEL 1B']
     ]
 
-    # Sort by level (1A before 1B) and take top 10
+    # Sort by level (1A before 1B)
     sorted_findings = sorted(
         level_1_findings,
         key=lambda x: (x.get('level', ''), x.get('drug', ''))
     )
 
-    return sorted_findings[:10]
+    return sorted_findings
 
 
 def generate_core_report_markdown(results: dict, subject_name: str = None) -> str:
-    """Generate $39 Core Report in Markdown format."""
+    """Generate $39 Core Report in Markdown format.
 
-    # Filter data
-    lifestyle_findings = filter_lifestyle_findings(results.get('findings', []))
+    Uses the same programmatic format as the exhaustive report, but truncated:
+    - Executive summary (no categories list)
+    - Priority findings (high + moderate only, with full clinical context)
+    - Pathway analysis
+    - PharmGKB Level 1A/1B only (detailed per-entry format)
+    - Action summary
+    - Disclaimer + upsell
+    """
+    from generate_exhaustive_report import (
+        generate_executive_summary,
+        generate_priority_findings,
+        generate_pathway_analysis,
+        generate_pharmgkb_report,
+        generate_action_summary,
+        generate_disclaimer,
+    )
+
+    # Filter data for Core tier
+    all_findings = results.get('findings', [])
+    lifestyle_findings = filter_lifestyle_findings(all_findings)
     pharma_quick = filter_pharma_quick_card(results.get('pharmgkb_findings', []))
 
-    # Counts
-    snps_analyzed = len(results.get('findings', []))  # Rough estimate
-    lifestyle_count = len(lifestyle_findings)
-    pharma_count = len(pharma_quick)
+    # Build a filtered copy of results for the exhaustive functions
+    core_data = {
+        'findings': lifestyle_findings,
+        'pharmgkb_findings': pharma_quick,
+        'summary': results.get('summary', {}),
+    }
 
-    now = datetime.now().strftime("%Y-%m-%d")
-    subject_line = f"**Subject:** {subject_name}\n\n" if subject_name else ""
+    # Build report parts
+    report_parts = []
 
-    # Build top insights (top 5 by magnitude)
-    top_findings = sorted(
-        lifestyle_findings,
-        key=lambda x: x.get('magnitude', 0),
-        reverse=True
-    )[:5]
+    # 1. Executive summary (simplified — no categories list)
+    report_parts.append(generate_executive_summary(
+        core_data,
+        title="DNA Decoder: Core Report",
+        subject_name=subject_name,
+        include_categories=False,
+    ))
 
-    top_insights_md = ""
-    for i, finding in enumerate(top_findings, 1):
-        gene = finding.get('gene', 'Unknown')
-        trait = finding.get('trait', 'Unknown')
-        genotype = finding.get('genotype', '')
-        mag = finding.get('magnitude', 0)
-        stars = '⭐' * mag
+    # 2. Priority findings (high + moderate with full clinical context)
+    report_parts.append(generate_priority_findings(lifestyle_findings))
 
-        top_insights_md += f"""
-### {i}. {gene} - {trait}
+    # 3. Pathway analysis
+    report_parts.append(generate_pathway_analysis(lifestyle_findings))
 
-- **Your Genotype:** `{genotype}`
-- **Impact:** {stars} ({mag}/5)
-- **What This Means:** {finding.get('summary', 'Genetic variant detected')}
+    # 4. Pharmacogenomics (Level 1A/1B only, detailed format)
+    if pharma_quick:
+        report_parts.append(generate_pharmgkb_report(pharma_quick))
 
----
-"""
+    # 5. Action summary
+    report_parts.append(generate_action_summary(lifestyle_findings))
 
-    # Build PharmGKB table
-    pharma_table_md = """
-| Drug | Gene | Your Status | Evidence | Notes |
-|------|------|-------------|----------|-------|
-"""
+    # 6. Disclaimer
+    report_parts.append(generate_disclaimer())
 
-    for p in pharma_quick:
-        drug = p.get('drug', 'Unknown')
-        gene = p.get('gene', 'Unknown')
-        phenotype = p.get('phenotype', 'See annotation')
-        level = p.get('level', '')
-        stars = '⭐' * 4 if '1A' in level else '⭐' * 3
+    # 7. Upsell
+    report_parts.append("""## Want the Full Clinical Picture?
 
-        pharma_table_md += f"| {drug} | {gene} | {phenotype} | {stars} | {p.get('annotation', '')} |\n"
-
-    # Markdown report
-    md_content = f"""# DNA Decoder: Core Report
-
-{subject_line}**Your Personalized Genetic Wellness Guide**
-
-*Generated on {now}*
-
----
-
-## Executive Summary
-
-Welcome to your DNA Decoder Core Report. This report translates **{snps_analyzed}** genetic variants from your raw data into actionable wellness insights about how your body may respond to foods, supplements, medications, and lifestyle factors.
-
-**What's Inside:**
-- {lifestyle_count} lifestyle and wellness insights
-- {pharma_count} medication response notes
-- Evidence-based action experiments
-- Personalized supplement considerations
-
-**What This Report Covers:**
-This Core Report focuses on wellness genetics and medication response—the areas where you can take action today. We analyze variants related to nutrition, metabolism, detoxification, sleep, and how your body processes common medications.
-
-**What This Report Doesn't Cover:**
-Clinical-grade disease risk screening requires separate analysis. If you're interested in exploring variants that may warrant confirmatory testing with a healthcare provider, that's available in the optional Deep Dive Clinical Context Report.
-
-**Important Context:**
-- This analysis is educational, not diagnostic
-- Based on direct-to-consumer raw data (not clinical-grade sequencing)
-- Many findings have emerging or limited evidence
-- Always discuss significant changes with your healthcare provider
-
----
-
-## Your Top Insights
-
-{top_insights_md}
-
----
-
-## 💊 Medication Response Quick Card
-
-**Share this section with your prescriber when discussing medications**
-
-Your genetic variants may influence how you metabolize certain medications. This is informational only—never change medications without medical supervision.
-
-{pharma_table_md}
-
-**Evidence Levels:**
-- ⭐⭐⭐⭐ Strong clinical evidence (FDA recognized or major guidelines)
-- ⭐⭐⭐ Moderate evidence (replicated studies)
-
-**Next Steps:**
-- Bring this to your doctor or pharmacist
-- Ask if pharmacogenomic testing is recommended
-- Request a medication review if you're taking any flagged drugs
-
----
-
-## 🎯 Your Action Experiments
-
-Start with one experiment at a time and track how you feel:
-
-1. **Caffeine Timing:** If you have slow caffeine metabolism variants, try cutting off caffeine by 2 PM
-2. **Methylated B Vitamins:** Consider methylfolate and methylcobalamin instead of folic acid/B12
-3. **Antioxidant Foods:** Increase intake of colorful vegetables (berries, leafy greens, cruciferous veggies)
-4. **Meal Timing:** Experiment with time-restricted eating based on your circadian rhythm genetics
-5. **Exercise Type:** Match your workout to your metabolism patterns (endurance vs. strength)
-
----
-
-## 📊 Confidence & Limitations
-
-### What This Analysis Can Tell You
-- Common genetic variants present in your raw data
-- Research-backed associations between variants and traits
-- Medication metabolism patterns recognized by pharmacogenomics
-
-### What This Analysis Cannot Tell You
-- Clinical diagnoses (that requires a doctor)
-- Rare or complex genetic conditions (requires clinical sequencing)
-- Exact quantified risk (genetics is one of many factors)
-- What will definitely happen (genes aren't destiny)
-
-### How to Use This Report
-1. **Read for patterns, not panic.** These are tendencies, not certainties.
-2. **Start small.** Pick 1-2 action experiments to try first.
-3. **Track your response.** Your body's feedback is the ultimate guide.
-4. **Consult professionals.** Share relevant sections with your healthcare team.
-5. **Stay curious.** Genetics research is rapidly evolving.
-
----
-
-## Need More?
-
-**Interested in a deeper clinical perspective?**
-
-The DNA Decoder Deep Dive Clinical Context Report explores additional variant categories that may warrant confirmatory testing. This optional report includes:
-- Flagged variants from clinical databases
-- Guidance on clinical confirmation testing
-- Family planning considerations
-- Full pharmacogenomics reference table
-
-**This deep dive is entirely optional.** Most people find the Core Report gives them everything they need to take action on their wellness.
+The Deep Dive report goes further — every single finding in your data, flagged variants from clinical databases (ClinVar), confirmatory testing guidance, the full pharmacogenomics table across all evidence levels, and complete pathway analysis. Most people find this Core Report gives them what they need to take action. The Deep Dive is for those who want the complete picture.
 
 ---
 
 *DNA Decoder by Genome Platform*
+""")
 
-**Disclaimer:** This report is for educational and informational purposes only. It is not intended to diagnose, treat, cure, or prevent any condition. Always consult with a qualified healthcare provider before making decisions about your health based on genetic information.
-"""
+    md_content = "\n".join(report_parts)
 
     # Sanitize any clinical terms that slipped through filters
     md_content = sanitize_clinical_terms(md_content)
@@ -313,105 +223,143 @@ def _render_report_html(title: str, md_content: str, accent: str = "#7c3aed") ->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {{
-    --bg: #09090b; --surface: #18181b; --border: #27272a;
+    --bg: #09090b; --surface: #18181b; --surface2: #1f1f23; --border: #27272a;
     --text: #e4e4e7; --muted: #a1a1aa;
     --accent: {accent}; --accent-light: #c4b5fd;
   }}
   *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
     background: var(--bg); color: var(--text);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    font-size: 15px; line-height: 1.7; padding: 0;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px; line-height: 1.75; padding: 0;
+    -webkit-font-smoothing: antialiased;
   }}
   .report-header {{
-    background: linear-gradient(135deg, #1e1b4b, #0f172a);
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 60%, #0c0a1a 100%);
     border-bottom: 2px solid var(--accent);
-    padding: 48px 24px; text-align: center;
+    padding: 56px 32px; text-align: center;
   }}
   .report-header h1 {{
-    font-size: 2rem; color: #fff; margin: 0 0 8px;
-    border: none; padding: 0;
+    font-size: 2.2rem; color: #fff; margin: 0 0 8px;
+    border: none; padding: 0; font-weight: 700;
+    letter-spacing: -0.02em;
   }}
-  .report-header p {{ color: var(--accent-light); font-size: 0.95rem; }}
+  .report-header p {{ color: var(--accent-light); font-size: 0.95rem; opacity: 0.85; }}
   .report-body {{
-    max-width: 800px; margin: 0 auto; padding: 40px 24px 80px;
+    max-width: 960px; margin: 0 auto; padding: 48px 32px 80px;
   }}
   h1 {{
     font-size: 1.8rem; color: #fff;
     border-bottom: 2px solid var(--accent);
-    padding-bottom: 12px; margin: 40px 0 20px;
+    padding-bottom: 12px; margin: 48px 0 24px;
+    font-weight: 700; letter-spacing: -0.01em;
   }}
   h2 {{
     font-size: 1.4rem; color: var(--accent-light);
-    margin: 36px 0 14px; padding-bottom: 8px;
+    margin: 40px 0 16px; padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+    font-weight: 600;
   }}
   h3 {{
     font-size: 1.15rem; color: #a78bfa;
-    margin: 28px 0 10px;
+    margin: 32px 0 12px; font-weight: 600;
   }}
-  p {{ margin-bottom: 14px; color: var(--text); }}
-  ul, ol {{ margin: 0 0 16px 24px; }}
-  li {{ margin-bottom: 6px; }}
+  h4 {{
+    font-size: 1.05rem; color: #c4b5fd;
+    margin: 24px 0 8px; font-weight: 600;
+  }}
+  p {{ margin-bottom: 16px; color: var(--text); }}
+  ul, ol {{ margin: 0 0 18px 24px; }}
+  li {{ margin-bottom: 8px; }}
   hr {{
     border: none; border-top: 1px solid var(--border);
-    margin: 32px 0;
+    margin: 36px 0;
   }}
-  strong {{ color: #fff; }}
+  strong {{ color: #fff; font-weight: 600; }}
   em {{ color: var(--muted); }}
   code {{
     background: var(--surface); padding: 2px 8px;
-    border-radius: 4px; font-family: 'Consolas', monospace;
-    font-size: 0.9em; color: var(--accent-light);
+    border-radius: 4px; font-family: 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.88em; color: var(--accent-light);
     border: 1px solid var(--border);
   }}
   blockquote {{
     border-left: 3px solid var(--accent);
-    padding: 14px 18px; background: var(--surface);
-    border-radius: 0 8px 8px 0; margin: 16px 0;
-    color: var(--muted);
+    padding: 16px 20px; background: var(--surface);
+    border-radius: 0 8px 8px 0; margin: 20px 0;
+    color: var(--muted); font-style: italic;
+  }}
+
+  /* ── Table styles ── */
+  .table-wrap {{
+    width: 100%; overflow-x: auto; margin: 24px 0;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface);
   }}
   table {{
     width: 100%; border-collapse: collapse;
-    margin: 20px 0; font-size: 0.9rem;
+    font-size: 0.875rem; table-layout: fixed;
   }}
   th {{
-    background: var(--surface); color: var(--accent-light);
-    padding: 12px 14px; text-align: left;
+    background: var(--surface2); color: var(--accent-light);
+    padding: 14px 16px; text-align: left;
     border-bottom: 2px solid var(--border);
-    font-weight: 600;
+    font-weight: 600; font-size: 0.8rem;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    white-space: nowrap;
   }}
   td {{
-    padding: 10px 14px; border-bottom: 1px solid var(--border);
-    color: var(--text);
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    color: var(--text); vertical-align: top;
+    word-wrap: break-word; overflow-wrap: break-word;
   }}
-  tr:hover td {{ background: rgba(124, 58, 237, 0.04); }}
+  tr:last-child td {{ border-bottom: none; }}
+  tr:hover td {{ background: rgba(124, 58, 237, 0.06); }}
+
+  /* Column widths for 5-column pharma tables (Drug | Gene | Phenotype | Level | Annotation) */
+  table th:nth-child(1), table td:nth-child(1) {{ width: 14%; }}
+  table th:nth-child(2), table td:nth-child(2) {{ width: 10%; }}
+  table th:nth-child(3), table td:nth-child(3) {{ width: 12%; }}
+  table th:nth-child(4), table td:nth-child(4) {{ width: 8%; text-align: center; }}
+  table th:nth-child(5), table td:nth-child(5) {{ width: 56%; }}
+
+  /* 2-column summary tables get auto layout */
+  table:has(th:nth-child(2):last-child) {{ table-layout: auto; }}
+  table:has(th:nth-child(2):last-child) th,
+  table:has(th:nth-child(2):last-child) td {{ width: auto; text-align: left; }}
+  table:has(th:nth-child(3):last-child) {{ table-layout: auto; }}
+  table:has(th:nth-child(3):last-child) th,
+  table:has(th:nth-child(3):last-child) td {{ width: auto; text-align: left; }}
+
   .report-footer {{
-    margin-top: 48px; padding: 24px 0;
+    margin-top: 56px; padding: 28px 0;
     border-top: 1px solid var(--border);
     color: var(--muted); font-size: 0.8rem;
-    text-align: center; line-height: 1.6;
+    text-align: center; line-height: 1.7;
   }}
+
   @media print {{
-    body {{ background: #fff; color: #111; font-size: 12pt; }}
+    body {{ background: #fff; color: #111; font-size: 11pt; }}
     .report-header {{ background: #f5f3ff; border-color: {accent}; }}
     .report-header h1 {{ color: #111; }}
     .report-header p {{ color: #4c1d95; }}
     h1 {{ color: #111; border-color: {accent}; }}
     h2 {{ color: #4c1d95; border-color: #e5e7eb; }}
     h3 {{ color: #5b21b6; }}
+    h4 {{ color: #4c1d95; }}
     p, li, td {{ color: #333; }}
     strong {{ color: #111; }}
     code {{ background: #f5f3ff; color: #4c1d95; border-color: #e5e7eb; }}
     th {{ background: #f5f3ff; color: #4c1d95; }}
     blockquote {{ background: #f9fafb; border-color: {accent}; color: #555; }}
     tr:hover td {{ background: transparent; }}
+    .table-wrap {{ border-color: #e5e7eb; }}
   }}
   @media (max-width: 600px) {{
     .report-body {{ padding: 24px 16px 60px; }}
-    .report-header {{ padding: 32px 16px; }}
-    table {{ font-size: 0.8rem; }}
-    th, td {{ padding: 8px; }}
+    .report-header {{ padding: 36px 16px; }}
+    table {{ font-size: 0.78rem; }}
+    th, td {{ padding: 10px 10px; }}
   }}
 </style>
 </head>
@@ -429,6 +377,13 @@ def _render_report_html(title: str, md_content: str, accent: str = "#7c3aed") ->
 </div>
 <script>
   document.getElementById('content').innerHTML = marked.parse({safe_md});
+  // Wrap all tables in a scrollable container
+  document.querySelectorAll('#content table').forEach(function(table) {{
+    var wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  }});
 </script>
 </body>
 </html>"""

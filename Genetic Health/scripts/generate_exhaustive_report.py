@@ -610,8 +610,16 @@ def generate_category_summary(findings, category):
     return "\n".join(summary)
 
 
-def generate_executive_summary(data):
-    """Generate executive summary."""
+def generate_executive_summary(data, title="Exhaustive Genetic Health Report",
+                               subject_name=None, include_categories=True):
+    """Generate executive summary.
+
+    Args:
+        data: comprehensive_results dict
+        title: report title (h1 heading)
+        subject_name: optional name to personalize
+        include_categories: whether to list category breakdown
+    """
     findings = data.get('findings', [])
     pharmgkb = data.get('pharmgkb_findings', [])
     summary = data.get('summary', {})
@@ -628,8 +636,11 @@ def generate_executive_summary(data):
     categories = set(f.get('category') for f in findings)
 
     lines = []
-    lines.append("# Exhaustive Genetic Health Report")
+    lines.append(f"# {title}")
     lines.append("")
+    if subject_name:
+        lines.append(f"**Subject:** {subject_name}")
+        lines.append("")
     lines.append(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     lines.append("")
     lines.append("---")
@@ -637,7 +648,9 @@ def generate_executive_summary(data):
     lines.append("## Executive Summary")
     lines.append("")
     lines.append("### Genome Overview")
-    lines.append(f"- **Total SNPs in Raw Data:** {summary.get('total_snps', 'N/A'):,}")
+    total_snps = summary.get('total_snps', 'N/A')
+    total_snps_str = f"{total_snps:,}" if isinstance(total_snps, int) else str(total_snps)
+    lines.append(f"- **Total SNPs in Raw Data:** {total_snps_str}")
     lines.append(f"- **Clinically Relevant SNPs Analyzed:** {len(findings)}")
     lines.append(f"- **PharmGKB Drug Interactions:** {len(pharmgkb)}")
     lines.append("")
@@ -651,11 +664,13 @@ def generate_executive_summary(data):
     lines.append(f"- 🔵 **Level 1 (Clinical Guidelines):** {len(level_1)}")
     lines.append(f"- 🟣 **Level 2 (Moderate Evidence):** {len(level_2)}")
     lines.append("")
-    lines.append("### Categories Covered")
-    for cat in sorted(categories):
-        count = len([f for f in findings if f.get('category') == cat])
-        lines.append(f"- {cat}: {count} findings")
-    lines.append("")
+    if include_categories:
+        lines.append("### Categories Covered")
+        for cat in sorted(categories):
+            count = len([f for f in findings if f.get('category') == cat])
+            lines.append(f"- {cat}: {count} findings")
+        lines.append("")
+
     lines.append("---")
     lines.append("")
 

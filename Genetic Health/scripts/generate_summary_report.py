@@ -1,7 +1,7 @@
 """
 Master Summary Report Generator
 
-Calls the Anthropic API to produce a plain-English, 9th-grade-level summary
+Calls the OpenAI API to produce a plain-English, 9th-grade-level summary
 of all genome analysis results — designed for non-medical, non-technical readers.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 def generate_summary_report(results: dict, subject_name: str | None = None) -> str:
     """
     Takes the comprehensive_results.json dict and generates a warm, plain-English
-    master summary report using Claude.
+    master summary report using OpenAI.
 
     Args:
         results: dict loaded from comprehensive_results.json
@@ -22,7 +22,7 @@ def generate_summary_report(results: dict, subject_name: str | None = None) -> s
     Returns:
         Markdown string of the full summary report
     """
-    import anthropic
+    from openai import OpenAI
 
     name = subject_name or "You"
     first_name = name.split()[0] if name and name != "You" else "You"
@@ -31,29 +31,43 @@ def generate_summary_report(results: dict, subject_name: str | None = None) -> s
     pharmgkb = results.get("pharmgkb_findings", [])
     summary = results.get("summary", {})
 
-    # Pull high-impact findings (magnitude >= 2)
-    high_findings = sorted(
-        [f for f in findings if f.get("magnitude", 0) >= 2],
-        key=lambda x: x.get("magnitude", 0),
-        reverse=True,
-    )[:10]
+    # Group findings by confidence tier
+    high_conf = sorted(
+        [f for f in findings if f.get("magnitude", 0) >= 3],
+        key=lambda x: x.get("magnitude", 0), reverse=True,
+    )
+    med_conf = sorted(
+        [f for f in findings if f.get("magnitude", 0) == 2],
+        key=lambda x: x.get("magnitude", 0), reverse=True,
+    )
+    low_conf = [f for f in findings if f.get("magnitude", 0) == 1]
+
+    def _fmt_finding(f):
+        return (f"- Gene: {f['gene']} | Category: {f.get('category','')} | "
+                f"Status: {f.get('status','')} | Effect: {f.get('description','')} | "
+                f"Magnitude: {f.get('magnitude',0)}/6")
+
+    findings_text = ""
+    if high_conf:
+        findings_text += "HIGH-CONFIDENCE FINDINGS (magnitude 3+):\n"
+        findings_text += "\n".join(_fmt_finding(f) for f in high_conf[:5]) + "\n\n"
+    if med_conf:
+        findings_text += "MODERATE-CONFIDENCE FINDINGS (magnitude 2):\n"
+        findings_text += "\n".join(_fmt_finding(f) for f in med_conf[:5]) + "\n\n"
+    if low_conf:
+        findings_text += "PRELIMINARY FINDINGS (magnitude 1, limited evidence):\n"
+        findings_text += "\n".join(_fmt_finding(f) for f in low_conf[:3]) + "\n"
+    if not findings_text:
+        findings_text = "No significant findings."
 
     # Pull Level 1 pharma interactions
     level1_pharma = [
         p for p in pharmgkb if p.get("level", "").startswith("1")
     ][:5]
 
-    # Build a structured prompt input
-    findings_text = "\n".join(
-        f"- Gene: {f['gene']} | Category: {f.get('category','')} | "
-        f"Status: {f.get('status','')} | Effect: {f.get('description','')} | "
-        f"Magnitude: {f.get('magnitude',0)}/6"
-        for f in high_findings
-    ) or "No high-impact findings."
-
     pharma_text = "\n".join(
-        f"- Gene: {p['gene']} | Drugs affected: {p.get('drugs','')} | "
-        f"Clinical note: {p.get('annotation','')[:200]}"
+        f"- Gene: {p['gene']} | Drugs affected: {p.get('drug', '') or p.get('drugs','')} | "
+        f"Clinical note: {(p.get('annotation','') or '')[:200]}"
         for p in level1_pharma
     ) or "No Level 1 drug-gene interactions found."
 
@@ -73,7 +87,7 @@ GENOME ANALYSIS SUMMARY STATISTICS:
 - Pathogenic/likely-pathogenic disease variants: {pathogenic_count}
 - Risk factor variants: {risk_factor_count}
 
-TOP HEALTH FINDINGS (ordered by significance):
+HEALTH FINDINGS (grouped by confidence level):
 {findings_text}
 
 MEDICATION-GENE INTERACTIONS (Level 1 evidence only):
@@ -82,59 +96,75 @@ MEDICATION-GENE INTERACTIONS (Level 1 evidence only):
 Please write the full Master Summary Report now following the exact structure and tone specified.
 """.strip()
 
-    system_prompt = """You are a warm, friendly health educator writing a personal genetic summary report.
-Your reader has no medical or science background. Write at a clear 9th-grade reading level.
-Use short sentences. Explain every term you use. Be encouraging and empowering, never alarming.
-Never make a medical diagnosis. Always recommend consulting a doctor for any medical decisions.
+    system_prompt = """You are a direct, no-BS genetics interpreter. You speak in plain English.
+Short sentences. No fluff. No corporate filler. No hand-holding.
+You give people the actual information, not descriptions of what each section means.
+You are blunt but not cruel. You use analogies and metaphors to make complex things click.
+Never make a medical diagnosis. Say "talk to your doctor" when relevant, but don't drown the report in disclaimers.
+
+Your tone examples:
+- "These are genetic maybes, not diagnoses."
+- "Think of these as dials, not switches. Lifestyle turns the dial way more than these SNPs do."
+- "If someone with your profile lives like trash, problems show up faster. If they live intentionally, they often outperform averages."
+- "This is monitoring territory, not alarm territory."
 
 Write the report in Markdown with these exact sections:
 
-# Your Personal Genome Summary
-## A Plain-English Guide to What Your DNA Is Telling You
+# Your DNA, Decoded
+## The plain English version. No fluff.
 
 ---
 
-## Your Genome at a Glance
-[3-4 sentence overview. Mention total variants analyzed, number of meaningful findings, and give a warm reassuring framing. Make the reader feel excited, not scared.]
+## The Big Picture
+[3-5 sentences. Lead with the single most important takeaway — do they have confirmed genetic diseases or not? Then state key counts: how many variants analyzed, how many meaningful findings, how many are actually worth paying attention to. No filler. Be direct.]
 
 ---
 
-## Your Top Health Insights
-[One subsection per high-impact finding. For each:
-- Use a friendly heading like "### Your [GENE] Gene"
-- 2-3 paragraphs: what the gene does in plain English, what your specific variant means, and why it matters for daily life
-- End each with 1 specific question it raises that the full report answers]
+## What Your Genetics Actually Show
+
+[DO NOT explain what each section means. Give the actual information. For each significant finding:]
+
+[For high-confidence findings: State what the gene does, what their variant means in practice, and one concrete implication for their life. 2-3 sentences max per finding. No headers per gene — use bold gene name inline.]
+
+[For moderate findings: Same format but shorter. Note evidence is still developing.]
+
+[For preliminary findings: One-line bullet points only. Frame as "early research suggests..." Keep it tight.]
+
+[After listing findings, add a "Translation:" line that cuts through the jargon in one punchy sentence.]
 
 ---
 
-## Medications & Your Genes
-[Plain summary of drug-gene interactions found. If none, say so warmly. Explain what pharmacogenomics means in one sentence. For each interaction, say which drug category is affected and why that's worth knowing — without alarm.]
+## How Your Body Handles Medications
+[This is the sleeper gold section. Be direct about what it means for them. List specific drug categories affected and why. Use "you likely..." language. End with: "Always mention you have pharmacogenomic variants before starting long-term meds."]
 
 ---
 
-## What Might Be Worth Watching
-[Disease risk factors explained simply. Use phrases like "your DNA suggests a slightly higher chance" not "you have X disease". Focus on empowerment: these are things worth being aware of and discussing with a doctor. Never be alarmist.]
+## What to Actually Do
+[Specific actionable list based on their findings. Split into Daily / Weekly / Avoid subsections. Include supplements that align with their profile. These should be tied to actual findings, not generic wellness advice.]
 
 ---
 
-## Simple Steps That Could Help
-[Top 5 actionable suggestions in plain English — supplements, diet tweaks, lifestyle changes — based on the findings. Write these as friendly tips, not medical prescriptions. Number them 1-5.]
+## Red Flags to Watch For
+[Symptom watchlist grouped by category (metabolic, circulation, inflammation, etc.). These are early warning lights, not panic signals. Be specific about what symptoms matter and when to act.]
 
 ---
 
-## What This Report Doesn't Tell You
-[2-3 paragraphs: honest, warm disclaimer. DNA is one piece of the puzzle. Lifestyle matters. Please talk to a doctor. This is for educational purposes only.]
+## The Bottom Line
+[3-5 punchy sentences. No genetic diseases detected (if true). Main risk clusters. Lifestyle leverage. End with something like: "Your genes do not doom you to anything. You are highly responsive to both good choices and bad ones. That is not a weakness. It is leverage."]
 
 ---
-*This summary was prepared using genetic data analysis. It is for educational purposes only and does not constitute medical advice.*"""
 
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+*This report is for educational purposes only. It is not a diagnosis. Talk to your doctor before making health decisions based on genetic data.*"""
 
-    message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+    response = client.chat.completions.create(
+        model="gpt-5-nano",
         max_tokens=4096,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_prompt}],
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
     )
 
-    return message.content[0].text
+    return response.choices[0].message.content

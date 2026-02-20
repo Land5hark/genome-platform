@@ -12,8 +12,6 @@ INCLUDES:
 Uses non-diagnostic framing - never says "you have X" or "you are affected".
 """
 
-from datetime import datetime
-from pathlib import Path
 import re
 
 
@@ -65,244 +63,150 @@ def extract_pathogenic_variants(disease_findings: dict) -> list:
     return pathogenic_variants
 
 
+def _build_clinvar_section(pathogenic_variants: list) -> str:
+    """Build the ClinVar flagged variants section with confidence tiers."""
+    pathogenic_count = len(pathogenic_variants)
+
+    def _render_variant(variant):
+        stars = '⭐' * variant['confidence']
+        sig = variant['significance'].replace('_', ' ').title()
+        genotype_desc = 'Homozygous (two copies)' if variant['is_homozygous'] else 'Heterozygous (one copy)'
+        condition_short = variant['condition'].split(';')[0]
+        return f"""**{variant['gene']}** — {condition_short}
+
+`{variant['genotype']}` ({genotype_desc}) | {sig} | Confidence: {stars} ({variant['confidence']}/4) | {variant['rsid']} at chr{variant['chromosome']}:{variant['position']}
+
+Research has linked this variant to {condition_short.lower()}. Flagged does not mean affected. If this truly mattered, it would likely already be obvious in your health history. Clinical confirmation testing is the only way to know for sure. Worth discussing with a genetic counselor if you have relevant family history or symptoms.
+
+---
+
+"""
+
+    if not pathogenic_variants:
+        return """## Flagged Variants (ClinVar)
+
+**No pathogenic or likely pathogenic variants detected.** That is the most important line in this report.
+
+Consumer testing does not catch everything — rare variants and structural changes are outside its scope. Keep up with age-appropriate health screenings regardless. But as far as this data goes: clear.
+
+---
+
+"""
+
+    high_conf = [v for v in pathogenic_variants if v['confidence'] >= 3]
+    med_conf = [v for v in pathogenic_variants if v['confidence'] == 2]
+    low_conf = [v for v in pathogenic_variants if v['confidence'] <= 1]
+
+    section = "## Flagged Variants (ClinVar)\n\n"
+    section += f"Your data flagged **{pathogenic_count}** variants classified as pathogenic or likely pathogenic in clinical databases. Here is what that actually means:\n\n"
+    section += "- They are flagged, not confirmed\n"
+    section += "- Most are single copies, not full disease-causing pairs\n"
+    section += "- Many are tied to conditions that would already be obvious if they applied to you\n"
+    section += "- Clinical confirmation testing is the only way to know for sure\n\n"
+    section += "Translation: These are genetic maybes, not diagnoses.\n\n---\n\n"
+
+    if high_conf:
+        section += "### High Confidence Reviews\n\nExpert-reviewed with consistent interpretation. These are the ones most worth discussing with a genetic counselor.\n\n---\n\n"
+        for v in high_conf:
+            section += _render_variant(v)
+
+    if med_conf:
+        section += "### Moderate Confidence Reviews\n\nMultiple reviewers, but some conflicting interpretations. Worth noting, not worth losing sleep over.\n\n---\n\n"
+        for v in med_conf:
+            section += _render_variant(v)
+
+    if low_conf:
+        section += "### Preliminary Reviews\n\nLimited review. Treat with extra caution — confirmatory testing matters most here.\n\n"
+        for v in low_conf:
+            gene = v['gene']
+            condition = v['condition'].split(';')[0]
+            sig = v['significance'].replace('_', ' ').title()
+            genotype_desc = 'two copies' if v['is_homozygous'] else 'one copy'
+            section += f"- **{gene}** ({condition}) — `{v['genotype']}` ({genotype_desc}) — {sig}\n"
+        section += "\n---\n\n"
+
+    # Jargon decoder
+    section += """## Quick Jargon Decoder
+
+You will see these terms in the findings above. Here is what they actually mean:
+
+- **Pathogenic** — Strong research links this variant to a condition. Does not mean you are affected.
+- **Likely Pathogenic** — Good evidence, not quite definitive. Same caveat.
+- **Heterozygous (one copy)** — You carry one copy. Many conditions need two copies to cause problems. One copy often means carrier status at most.
+- **Homozygous (two copies)** — You carry two copies. This is when it matters more. Still needs clinical confirmation.
+- **ClinVar confidence stars** — How many independent reviewers agree on the classification. More stars = more reliable.
+
+---
+
+"""
+    return section
+
+
 def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
                                        subject_name: str = None) -> str:
-    """Generate $79 Deep Dive Report in Markdown format."""
+    """Generate $79 Deep Dive Report in Markdown format.
 
-    # Extract data
+    Uses the same programmatic format as the exhaustive report — full version:
+    - Executive summary (with categories)
+    - ClinVar flagged variants (confidence-tiered)
+    - Priority findings (high + moderate with full clinical context)
+    - Pathway analysis
+    - Complete findings by category
+    - Full pharmacogenomics (all evidence levels, detailed per-entry)
+    - Action summary
+    - Disclaimer
+    """
+    from generate_exhaustive_report import (
+        generate_executive_summary,
+        generate_priority_findings,
+        generate_pathway_analysis,
+        generate_full_findings,
+        generate_pharmgkb_report,
+        generate_action_summary,
+        generate_disclaimer,
+    )
+
+    findings = results.get('findings', [])
+    pharmgkb = results.get('pharmgkb_findings', [])
     pathogenic_variants = extract_pathogenic_variants(disease_findings)
-    all_pharmgkb = results.get('pharmgkb_findings', [])
 
-    # Counts
-    total_variants = len(results.get('findings', []))
-    pathogenic_count = len(pathogenic_variants)
-    pharmgkb_count = len(all_pharmgkb)
+    # Build report parts
+    report_parts = []
 
-    now = datetime.now().strftime("%Y-%m-%d")
-    subject_line = f"**Subject:** {subject_name}\n\n" if subject_name else ""
+    # 1. Executive summary (full — with categories)
+    report_parts.append(generate_executive_summary(
+        results,
+        title="DNA Decoder: Deep Dive Report",
+        subject_name=subject_name,
+        include_categories=True,
+    ))
 
-    # Build pathogenic variants section
-    pathogenic_section = ""
-    if pathogenic_variants:
-        pathogenic_section = "## High-Priority Variants\n\n"
-        pathogenic_section += "These variants have been flagged in clinical databases. Each warrants discussion with a genetic counselor or physician.\n\n"
+    # 2. ClinVar flagged variants (unique to Deep Dive)
+    report_parts.append(_build_clinvar_section(pathogenic_variants))
 
-        for variant in pathogenic_variants:
-            stars = '⭐' * variant['confidence']
-            sig = variant['significance'].replace('_', ' ').title()
-            genotype_desc = 'Homozygous' if variant['is_homozygous'] else 'Heterozygous'
+    # 3. Priority findings (high + moderate with full clinical context)
+    report_parts.append(generate_priority_findings(findings))
 
-            pathogenic_section += f"""### {variant['gene']} - {variant['condition'].split(';')[0]}
+    # 4. Pathway analysis
+    report_parts.append(generate_pathway_analysis(findings))
 
-- **Position:** chr{variant['chromosome']}:{variant['position']}
-- **rsID:** {variant['rsid']}
-- **Your Genotype:** `{variant['genotype']}` ({genotype_desc})
-- **Classification:** {sig}
-- **Confidence:** {stars} ({variant['confidence']}/4)
-- **Evidence Source:** {variant['evidence_source']}
+    # 5. Complete findings by category (ALL findings)
+    report_parts.append(generate_full_findings(findings))
 
-**Interpretation:**
-This variant has been flagged in the ClinVar database as {sig.lower()}. This means research has associated it with {variant['condition'].lower()}. **Important:** Being flagged does NOT mean you are affected. Clinical-grade confirmation testing is required, and additional factors (family history, symptoms, other genetic and environmental factors) influence actual risk.
+    # 6. Full pharmacogenomics (all levels, detailed per-entry)
+    if pharmgkb:
+        report_parts.append(generate_pharmgkb_report(pharmgkb))
 
-**Next Steps:**
-1. Discuss this finding with a genetic counselor
-2. Request clinical confirmation testing if recommended
-3. Provide family history and symptoms to contextualize the finding
+    # 7. Action summary
+    report_parts.append(generate_action_summary(findings))
 
----
+    # 8. Disclaimer
+    report_parts.append(generate_disclaimer())
 
-"""
-    else:
-        pathogenic_section = """## High-Priority Variants
+    # Footer
+    report_parts.append("*DNA Decoder by Genome Platform*\n")
 
-No pathogenic or likely pathogenic variants were detected in the analyzed data. This is reassuring, but remember:
-- Consumer genetic testing doesn't detect all variants
-- Rare variants may not be covered by the chip
-- Continue recommended health screenings based on age and family history
-
----
-
-"""
-
-    # Build PharmGKB table
-    pharma_table_md = """
-| Drug | Gene | Phenotype | Level | Clinical Annotation |
-|------|------|-----------|-------|---------------------|
-"""
-
-    for p in all_pharmgkb:
-        drug = p.get('drug', 'Unknown')
-        gene = p.get('gene', 'Unknown')
-        phenotype = p.get('phenotype', 'See annotation')
-        level = p.get('level', '')
-        annotation = p.get('annotation', '')
-
-        pharma_table_md += f"| {drug} | {gene} | {phenotype} | {level} | {annotation} |\n"
-
-    # Markdown report
-    md_content = f"""# DNA Decoder: Deep Dive Clinical Context Report
-
-{subject_line}**Your Comprehensive Genetic Analysis**
-
-*Generated on {now}*
-
----
-
-## Executive Summary
-
-This Deep Dive report provides a comprehensive view of your genetic data, including variants flagged in clinical databases like ClinVar and PharmGKB. This is an informational resource to help you have more informed conversations with your healthcare providers—**it is not a diagnosis.**
-
-**What's Inside:**
-- {total_variants} variants analyzed across databases
-- {pathogenic_count} variants flagged as pathogenic or likely pathogenic
-- {pharmgkb_count} pharmacogenomic findings
-- Guidance on confirmatory testing and next steps
-- Family planning considerations
-
-**Critical Context:**
-- **This is not diagnostic.** Clinical confirmation is required for any flagged variant.
-- **Raw data has limitations.** Direct-to-consumer tests miss rare variants and provide lower accuracy than clinical sequencing.
-- **Flagged ≠ affected.** Many flagged variants require two copies (homozygous) to cause a condition, and you may have only one (heterozygous).
-- **Uncertainty is normal.** Genetic research is evolving—today's "uncertain significance" may be reclassified tomorrow.
-
----
-
-## Understanding This Report
-
-### What Do "Pathogenic" and "Likely Pathogenic" Mean?
-
-Clinical databases like ClinVar classify variants based on their evidence for causing conditions:
-
-- **Pathogenic:** Strong evidence that this variant can contribute to a condition
-- **Likely Pathogenic:** Moderate-to-strong evidence suggesting association
-- **Uncertain Significance:** Not enough evidence to classify
-- **Likely Benign / Benign:** Evidence suggests no increased risk
-
-**Important:** Being flagged as "pathogenic" does NOT mean you are affected. It means:
-1. This variant has been associated with a condition in published research
-2. You may carry one or two copies of this variant
-3. Clinical-grade confirmation testing is needed
-4. Additional factors (family history, symptoms, other genes) influence actual risk
-
-### Why Raw Data Requires Confirmation
-
-Your raw genetic data from consumer testing:
-- Uses microarray chips that check ~600,000 common variants
-- May have false positives or false negatives
-- Doesn't detect rare variants, deletions, or duplications
-- Provides probabilities, not certainties
-
-**Clinical-grade confirmatory testing** uses:
-- Targeted sequencing or full exome/genome sequencing
-- Higher accuracy with independent verification
-- Medical-grade quality control
-- Results you can use for healthcare decisions
-
-**Never make medical decisions based on raw data alone.**
-
----
-
-## Summary Dashboard
-
-| Category | Count |
-|----------|-------|
-| Total Variants Analyzed | {total_variants} |
-| Pathogenic/Likely Pathogenic Flagged | {pathogenic_count} |
-| PharmGKB Drug Interactions | {pharmgkb_count} |
-
----
-
-{pathogenic_section}
-
-## Pharmacogenomics: Full Reference Table
-
-This table shows all medication-gene interactions found in your data.
-
-**Important:** This is informational only. Never adjust medications without medical supervision.
-
-{pharma_table_md}
-
-### Evidence Levels Explained
-
-- **Level 1A:** FDA-recognized, guideline-recommended
-- **Level 1B:** Strong clinical evidence, medical consensus
-- **Level 2A:** Moderate evidence, replicated studies
-- **Level 2B:** Preliminary evidence from limited studies
-- **Level 3:** In vitro or theoretical associations
-
-**For medications you're currently taking:** Bring this table to your prescriber or pharmacist. Ask if dose adjustments, monitoring, or alternative medications are recommended.
-
----
-
-## Recommended Confirmatory Testing & Follow-Up
-
-### If High-Priority Variants Were Flagged
-
-1. **Request a Genetic Counseling Consultation**
-   - Genetic counselors interpret results in the context of your health history
-   - They can order appropriate confirmatory testing
-   - Insurance often covers counseling for flagged variants
-
-2. **Clinical Confirmation Options**
-   - **Targeted Gene Panel:** Test specific genes flagged in this report
-   - **Exome Sequencing:** Analyze all protein-coding genes (~20,000 genes)
-   - **Genome Sequencing:** Full DNA analysis including non-coding regions
-
-3. **Questions to Ask Your Doctor**
-   - "Should I have clinical-grade testing for this variant?"
-   - "What symptoms or health history would make this more concerning?"
-   - "Are there screening tests I should have based on this finding?"
-   - "Should my family members be informed or tested?"
-
-### If PharmGKB Findings Were Flagged
-
-1. Bring the Pharmacogenomics table to your prescriber
-2. Request a Medication Review if you're taking any flagged drugs
-3. Ask about formal PGx testing (clinical pharmacogenomic panel)
-4. Keep a copy for future prescriptions and emergency situations
-
----
-
-## Family Planning & Relatives
-
-### Should You Share This Information?
-
-**Consider sharing if:**
-- You have children or plan to have children
-- Close relatives have relevant health conditions
-- A flagged variant is associated with hereditary cancer or cardiac conditions
-- A pharmacogenomic finding could affect a relative's current medications
-
-**How to share responsibly:**
-- Start with: "I did a genetic analysis and found a flagged variant—it may or may not be significant."
-- Recommend they speak with their doctor or genetic counselor
-- Provide the gene name and condition, not raw data files
-- Respect their choice—some people prefer not to know
-
----
-
-## How to Use This Report
-
-### ✅ Do:
-- Share relevant sections with your healthcare providers
-- Request genetic counseling for flagged variants
-- Ask about clinical confirmation testing
-- Use pharmacogenomics findings when discussing medications
-- Keep this report updated if you retest in the future
-
-### ❌ Don't:
-- Make medical decisions based solely on this report
-- Assume flagged variants mean you are affected
-- Start or stop medications without supervision
-- Panic—most flagged variants have low penetrance or require additional factors
-- Share raw genetic data publicly (privacy risk)
-
----
-
-*DNA Decoder Deep Dive by Genome Platform*
-
-**Disclaimer:** This report is for educational and informational purposes only. It is not a clinical diagnostic test. Variants flagged in this report should be confirmed with clinical-grade testing before any medical decisions are made. This report does not replace consultation with qualified healthcare providers, including genetic counselors and physicians. Always seek professional medical advice before acting on genetic information.
-"""
+    md_content = "\n".join(report_parts)
 
     # Assert proper framing
     assert_proper_clinical_framing(md_content)
