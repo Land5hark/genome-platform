@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m venv:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(pkill:*)",
+      "Bash(pip show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh.exe pr view:*)",
+      "Bash(where:*)",
+      "Bash(winget list:*)",
+      "Bash(git check-attr:*)"
+    ]
+  }
+}

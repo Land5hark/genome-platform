@@ -3,811 +3,1106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genome Intelligence — Unlock What Your DNA Test Didn't Tell You</title>
+    <title>DNA Decoder by Helix Health — Understand Your DNA. Act on It Today.</title>
     <style>
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #fafafa;
-            line-height: 1.6;
+
+        :root {
+            --charcoal: #0F1115;
+            --white: #F7F8FA;
+            --purple: #6D28D9;
+            --purple-dark: #5B21B6;
+            --slate: #4B5563;
+            --success: #16A34A;
+            --border: #E5E7EB;
+            --text: #1F2937;
+            --text-light: #6B7280;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--white);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 24px;
         }
+
         /* Navigation */
         nav {
-            border-bottom: 1px solid #1f1f1f;
-            background: rgba(10,10,10,0.95);
-            backdrop-filter: blur(10px);
+            background: white;
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
-            z-index: 20;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
+
         nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 64px;
+            height: 72px;
         }
+
         .logo {
             display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .logo-main {
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 1.25rem;
             font-weight: 700;
-            color: #fafafa;
+            color: var(--charcoal);
+            text-decoration: none;
         }
-        .logo svg {
-            width: 32px;
-            height: 32px;
-            color: #3b82f6;
+
+        .logo-main img {
+            width: 40px;
+            height: 40px;
         }
-        .nav-buttons {
-            display: flex;
-            gap: 12px;
+
+        .logo-sub {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            padding-left: 50px;
+            font-weight: 400;
         }
-        button,
-        .button {
-            padding: 10px 20px;
-            border-radius: 6px;
+
+        /* Buttons */
+        button, .button {
+            padding: 14px 32px;
+            border-radius: 10px;
             border: none;
             cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
+            font-size: 1rem;
+            font-weight: 600;
             transition: all 0.2s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
-        .btn-ghost {
-            background: transparent;
-            color: #a1a1aa;
-        }
-        .btn-ghost:hover {
-            color: #fafafa;
-        }
+
         .btn-primary {
-            background: #3b82f6;
+            background: var(--purple);
             color: white;
         }
+
         .btn-primary:hover {
-            background: #2563eb;
+            background: var(--purple-dark);
         }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #3f3f46;
-            color: #fafafa;
-        }
-        .btn-outline:hover {
-            border-color: #52525b;
-        }
-        .btn-lg {
-            padding: 14px 28px;
-            font-size: 1rem;
+
+        .btn-large {
+            padding: 16px 40px;
+            font-size: 1.05rem;
+            font-weight: 600;
         }
 
         /* Hero Section */
         .hero {
-            padding: 100px 0;
-            background: linear-gradient(to bottom, #0a0a0a, #111111);
-            position: relative;
-            overflow: hidden;
+            padding: 80px 0;
+            background: linear-gradient(to bottom, #FAFBFC, white);
         }
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(ellipse at top, rgba(59,130,246,0.1) 0%, transparent 50%);
-            pointer-events: none;
-        }
+
         .hero .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 64px;
+            gap: 80px;
             align-items: center;
-            position: relative;
-            z-index: 1;
         }
+
         .hero-content h1 {
             font-size: 3.5rem;
-            font-weight: 800;
+            font-weight: 700;
             line-height: 1.1;
             margin-bottom: 24px;
-            color: #fafafa;
+            color: var(--charcoal);
             letter-spacing: -0.02em;
         }
-        .hero-content h1 span {
-            color: #3b82f6;
-        }
-        .hook {
-            font-size: 1.5rem;
-            color: #d4d4d8;
-            margin-bottom: 16px;
-            font-weight: 500;
-        }
-        .hero-content p {
-            font-size: 1.125rem;
-            color: #71717a;
+
+        .hero-content p.subheadline {
+            font-size: 1.25rem;
+            color: var(--slate);
             margin-bottom: 32px;
-            max-width: 540px;
             line-height: 1.7;
         }
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 32px;
+
+        .hero-cta {
+            margin-bottom: 24px;
         }
-        .trust-badges {
+
+        .hero-benefits {
             display: flex;
             gap: 24px;
-            font-size: 0.875rem;
-            color: #52525b;
+            font-size: 0.9rem;
+            color: var(--text-light);
         }
-        .trust-badge {
+
+        .hero-benefit {
             display: flex;
             align-items: center;
             gap: 6px;
         }
-        .trust-badge svg {
-            width: 16px;
-            height: 16px;
-            color: #22c55e;
+
+        .hero-benefit::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
         }
 
-        /* Hero Card */
-        .hero-card {
-            background: #141414;
-            border: 1px solid #1f1f1f;
+        .hero-visual {
+            background: white;
+            border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(59,130,246,0.05);
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(59,130,246,0.1);
-        }
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(59,130,246,0.1);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .feature-icon svg {
-            width: 24px;
-            height: 24px;
-            color: #3b82f6;
-        }
-        .feature-item p:first-child {
-            font-weight: 600;
-            color: #fafafa;
-        }
-        .feature-item p:last-child {
-            font-size: 0.875rem;
-            color: #71717a;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        /* How It Works */
-        .how-it-works {
-            padding: 100px 0;
-            background: #0a0a0a;
-            border-top: 1px solid #1f1f1f;
+        .hero-visual img {
+            width: 100%;
+            height: auto;
         }
+
+        /* Social Proof Strip */
+        .social-proof {
+            background: #F9FAFB;
+            padding: 32px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            text-align: center;
+        }
+
+        .proof-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .proof-icon {
+            font-size: 1.5rem;
+        }
+
+        .proof-text {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        /* Section */
+        section {
+            padding: 100px 0;
+        }
+
         .section-header {
             text-align: center;
             margin-bottom: 64px;
         }
+
         .section-header h2 {
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 16px;
-            color: #fafafa;
+            color: var(--charcoal);
         }
+
         .section-header p {
-            color: #71717a;
+            font-size: 1.125rem;
+            color: var(--text-light);
             max-width: 600px;
             margin: 0 auto;
-            font-size: 1.125rem;
         }
-        .steps {
+
+        /* What You'll Discover */
+        .discovery-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 32px;
         }
-        .step-card {
-            background: #141414;
-            border: 1px solid #1f1f1f;
+
+        .discovery-card {
+            background: white;
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 32px;
+            text-align: center;
         }
-        .step-number {
-            width: 48px;
-            height: 48px;
-            background: rgba(59,130,246,0.1);
-            color: #3b82f6;
-            border-radius: 8px;
+
+        .discovery-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .discovery-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--charcoal);
+        }
+
+        .discovery-card p {
+            font-size: 0.9375rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Sample Insight */
+        .sample-insight {
+            background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+            padding: 100px 0;
+        }
+
+        .insight-card {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(109,40,217,0.15);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .insight-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            border: 1px solid rgba(59,130,246,0.2);
-        }
-        .step-card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #fafafa;
-        }
-        .step-card p {
-            color: #a1a1aa;
-            font-size: 0.9375rem;
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-        .step-card .detail {
-            font-size: 0.875rem;
-            color: #52525b;
+            font-size: 1.75rem;
         }
 
-        /* Analyzer */
-        .analyzer {
-            padding: 100px 0;
-            background: linear-gradient(to bottom, #111111, #0a0a0a);
-            border-top: 1px solid #1f1f1f;
-        }
-        .analyzer-card {
-            max-width: 760px;
-            margin: 0 auto;
-            background: #141414;
-            border: 1px solid #1f1f1f;
-            border-radius: 12px;
-            padding: 32px;
-        }
-        .analyzer label {
-            display: block;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            color: #d4d4d8;
+        .insight-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            font-size: 0.95rem;
+            color: var(--charcoal);
         }
-        .analyzer input {
-            width: 100%;
-            background: #0f0f0f;
-            border: 1px solid #2b2b2b;
-            color: #fafafa;
+
+        .insight-status {
+            display: inline-block;
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .insight-body h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .insight-body p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--slate);
+            margin-bottom: 16px;
+        }
+
+        .insight-action {
+            background: #F9FAFB;
+            padding: 16px;
             border-radius: 8px;
-            padding: 12px;
+            border-left: 3px solid var(--purple);
         }
-        #status {
-            margin-top: 12px;
-            color: #a1a1aa;
-            min-height: 24px;
-            font-size: 0.95rem;
+
+        .insight-action strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--charcoal);
+        }
+
+        /* How It Works */
+        .steps {
+            display: flex;
+            gap: 48px;
+            justify-content: center;
+        }
+
+        .step {
+            flex: 1;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .step-number {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 24px;
+        }
+
+        .step h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--charcoal);
+        }
+
+        .step p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* What's Included */
+        .included-list {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .included-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .included-item:last-child {
+            border-bottom: none;
+        }
+
+        .included-check {
+            color: var(--success);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .included-text {
+            flex: 1;
+        }
+
+        .included-text strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--charcoal);
+        }
+
+        .included-text p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .disclaimer {
+            background: #F9FAFB;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 32px;
+            font-size: 0.875rem;
+            color: var(--text-light);
+            line-height: 1.6;
         }
 
         /* Pricing */
         .pricing {
-            padding: 100px 0;
-            background: linear-gradient(to bottom, #0a0a0a, #111111);
-            border-top: 1px solid #1f1f1f;
+            background: linear-gradient(to bottom, white, #F9FAFB);
         }
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+
         .pricing-card {
-            background: #141414;
-            border: 1px solid #1f1f1f;
-            border-radius: 12px;
-            padding: 32px;
-            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid var(--purple);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(109,40,217,0.1);
         }
-        .pricing-card.popular {
-            border-color: #3b82f6;
-            border-width: 2px;
-            background: linear-gradient(to bottom, #141414, rgba(59,130,246,0.05));
-        }
-        .popular-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #3b82f6;
-            color: white;
-            padding: 4px 16px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+
         .pricing-card h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #fafafa;
-        }
-        .price {
-            font-size: 3rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 8px;
-            color: #fafafa;
+            color: var(--charcoal);
         }
-        .price-description {
-            font-size: 0.9375rem;
-            color: #71717a;
-            margin-bottom: 24px;
+
+        .price {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--purple);
+            margin: 16px 0;
         }
-        .features {
-            list-style: none;
+
+        .price-detail {
+            font-size: 1rem;
+            color: var(--text-light);
             margin-bottom: 32px;
         }
-        .features li {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
+
+        .pricing-cta {
+            margin-bottom: 16px;
+        }
+
+        .pricing-note {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        /* Upload Section */
+        .upload {
+            background: #F9FAFB;
+        }
+
+        .upload-card {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .upload-card label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--charcoal);
             font-size: 0.9375rem;
-            color: #d4d4d8;
         }
-        .features li svg {
-            width: 18px;
-            height: 18px;
-            color: #22c55e;
-            flex-shrink: 0;
-        }
-        .features li.disabled {
-            color: #52525b;
-        }
-        .btn-full {
+
+        .upload-card input {
             width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .upload-card input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+
+        #status {
+            margin-top: 16px;
+            text-align: center;
+            color: var(--text-light);
+            min-height: 24px;
+        }
+
+        /* Results Panel */
+        #resultsPanel {
+            max-width: 800px;
+            margin: 48px auto 0;
+        }
+
+        .results-stats {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: #F9FAFB;
+            border-radius: 12px;
+        }
+
+        .results-stats p {
+            font-size: 0.9375rem;
+            color: var(--text-light);
+        }
+
+        .teaser-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--purple);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .teaser-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .teaser-icon {
+            font-size: 2rem;
+        }
+
+        .teaser-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--charcoal);
+        }
+
+        .teaser-body {
+            color: var(--slate);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .teaser-hook {
+            color: var(--purple);
+            font-style: italic;
+            font-size: 0.9375rem;
+        }
+
+        .unlock-cta {
+            background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .unlock-cta h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+        }
+
+        .unlock-cta p {
+            font-size: 1.125rem;
+            color: var(--slate);
+            max-width: 500px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+
+        /* FAQ */
+        .faq-list {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .faq-item h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--charcoal);
+        }
+
+        .faq-item p {
+            color: var(--slate);
+            line-height: 1.7;
         }
 
         /* Footer */
         footer {
-            border-top: 1px solid #1f1f1f;
+            background: var(--charcoal);
+            color: white;
             padding: 48px 0;
-            background: #0a0a0a;
         }
+
         footer .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
         .footer-logo {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            color: #fafafa;
-        }
-        .footer-logo svg {
-            width: 24px;
-            height: 24px;
-            color: #3b82f6;
-        }
-        footer p {
-            font-size: 0.875rem;
-            color: #52525b;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        /* Responsive */
+        .footer-logo-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .footer-logo-main img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .footer-logo-sub {
+            font-size: 0.7rem;
+            color: #9CA3AF;
+            padding-left: 42px;
+        }
+
+        footer p {
+            font-size: 0.875rem;
+            color: #9CA3AF;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .hero .container {
+            .hero .container,
+            .discovery-grid,
+            .steps {
                 grid-template-columns: 1fr;
             }
+
             .hero-content h1 {
                 font-size: 2.5rem;
             }
-            .hook {
-                font-size: 1.25rem;
+
+            .proof-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-            .steps,
-            .pricing-grid {
-                grid-template-columns: 1fr;
+
+            .discovery-grid {
+                gap: 20px;
             }
-            .hero-buttons {
-                flex-direction: column;
-            }
+
             footer .container {
                 flex-direction: column;
-                gap: 12px;
+                gap: 16px;
+            }
+
+            .btn-large {
+                width: 100%;
+            }
+        }
+
+        /* Mobile sticky CTA */
+        @media (max-width: 768px) {
+            .mobile-sticky-cta {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 16px 20px;
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                z-index: 50;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
     <nav>
         <div class="container">
-            <div class="logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 15c6.667-6 13.333 0 20-6"/>
-                    <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/>
-                    <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/>
-                    <path d="m17 6-2.5-2.5"/>
-                    <path d="m14 8-1-1"/>
-                    <path d="m7 18 2.5 2.5"/>
-                    <path d="m3.5 14.5.5.5"/>
-                    <path d="m20 9 .5.5"/>
-                    <path d="m6.5 12.5 1 1"/>
-                    <path d="m16.5 10.5 1 1"/>
-                    <path d="m10 16 1.5 1.5"/>
-                </svg>
-                Genome Intelligence
-            </div>
-            <div class="nav-buttons">
-                <button class="btn-ghost" data-scroll="#analyze">Sign In</button>
-                <button class="btn-primary" data-scroll="#analyze">Get Started</button>
-            </div>
+            <a href="/" class="logo">
+                <div class="logo-main">
+                    <img src="logo.png" alt="DNA Decoder">
+                    DNA Decoder
+                </div>
+                <div class="logo-sub">by Helix Health</div>
+            </a>
+            <button class="btn-primary" onclick="scrollToUpload()">Analyze My DNA</button>
         </div>
     </nav>
 
+    <!-- Hero Section -->
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>Unlock What Your DNA Test <span>Didn't Tell You</span></h1>
-                <p class="hook">You already paid for your DNA. You just never unlocked it.</p>
-                <p>That 23andMe or AncestryDNA report gave you ethnicity percentages and a raw data file you can't read. We extract the health insights you actually paid for: medication responses, vitamin needs, disease risks, and a personalized supplement protocol based on your genetics.</p>
-                <div class="hero-buttons">
-                    <button class="btn-primary btn-lg" data-scroll="#analyze">Unlock Your DNA →</button>
-                    <button class="btn-outline btn-lg" data-scroll="#analyze">See What's Hidden</button>
+                <h1>Understand Your DNA. Act on It Today.</h1>
+                <p class="subheadline">
+                    Upload your 23andMe or AncestryDNA file and get clear, personalized wellness
+                    and medication response insights — instantly.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn-primary btn-large" onclick="scrollToUpload()">
+                        Analyze My DNA for $39
+                    </button>
                 </div>
-                <div class="trust-badges">
-                    <div class="trust-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Used by 10,000+ biohackers
-                    </div>
-                    <div class="trust-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                        23andMe &amp; Ancestry compatible
-                    </div>
+                <div class="hero-benefits">
+                    <div class="hero-benefit">One-time payment</div>
+                    <div class="hero-benefit">Instant digital report</div>
+                    <div class="hero-benefit">Secure upload</div>
                 </div>
             </div>
-            <div class="hero-card">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    </div>
-                    <div>
-                        <p>Health Risks Report</p>
-                        <p>150+ conditions analyzed with clinical-grade databases</p>
-                    </div>
+            <div class="hero-visual">
+                <!-- Placeholder for visual element -->
+                <svg viewBox="0 0 400 300" style="width:100%; height:auto;">
+                    <defs>
+                        <linearGradient id="helix-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6D28D9;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#5B21B6;stop-opacity:0.4" />
+                        </linearGradient>
+                    </defs>
+                    <!-- DNA Helix illustration -->
+                    <path d="M 50 50 Q 100 30, 150 50 T 250 50 T 350 50"
+                          stroke="#6D28D9" stroke-width="8" fill="none" opacity="0.3"/>
+                    <path d="M 50 80 Q 100 100, 150 80 T 250 80 T 350 80"
+                          stroke="#6D28D9" stroke-width="8" fill="none" opacity="0.3"/>
+                    <circle cx="50" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
+                    <circle cx="150" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
+                    <circle cx="250" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
+                    <circle cx="350" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
+                    <circle cx="100" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
+                    <circle cx="200" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
+                    <circle cx="300" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
+                    <!-- Connection lines -->
+                    <line x1="50" y1="50" x2="100" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                    <line x1="150" y1="50" x2="100" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                    <line x1="150" y1="50" x2="200" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                    <line x1="250" y1="50" x2="200" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                    <line x1="250" y1="50" x2="300" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                    <line x1="350" y1="50" x2="300" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Strip -->
+    <section class="social-proof">
+        <div class="container">
+            <div class="proof-grid">
+                <div class="proof-item">
+                    <div class="proof-icon">🔬</div>
+                    <div class="proof-text">Built using ClinVar & PharmGKB databases</div>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                    </div>
-                    <div>
-                        <p>Pharmacogenomics</p>
-                        <p>Which medications work for your body—and which don't</p>
-                    </div>
+                <div class="proof-item">
+                    <div class="proof-icon">🧬</div>
+                    <div class="proof-text">Analyzes 600,000+ SNPs</div>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/></svg>
-                    </div>
-                    <div>
-                        <p>Personalized Protocol</p>
-                        <p>Supplements, diet, and lifestyle based on your variants</p>
+                <div class="proof-item">
+                    <div class="proof-icon">📖</div>
+                    <div class="proof-text">Plain-English explanations</div>
+                </div>
+                <div class="proof-item">
+                    <div class="proof-icon">🔒</div>
+                    <div class="proof-text">Privacy-first design</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What You'll Discover -->
+    <section>
+        <div class="container">
+            <div class="section-header">
+                <h2>What You'll Discover</h2>
+                <p>Turn raw genetic data into real-world wellbeing insights you can use now</p>
+            </div>
+            <div class="discovery-grid">
+                <div class="discovery-card">
+                    <div class="discovery-icon">☕</div>
+                    <h3>Caffeine & Sleep</h3>
+                    <p>How your body processes caffeine and how it affects recovery</p>
+                </div>
+                <div class="discovery-card">
+                    <div class="discovery-icon">🥗</div>
+                    <h3>Nutrient Processing</h3>
+                    <p>Insights into methylation, choline, B12 and more</p>
+                </div>
+                <div class="discovery-card">
+                    <div class="discovery-icon">🧘</div>
+                    <h3>Stress & Dopamine</h3>
+                    <p>Understand your natural resilience and stimulation needs</p>
+                </div>
+                <div class="discovery-card">
+                    <div class="discovery-icon">💊</div>
+                    <h3>Medication Response</h3>
+                    <p>Pharmacogenomic flags you can share with your doctor</p>
+                </div>
+                <div class="discovery-card">
+                    <div class="discovery-icon">❤️</div>
+                    <h3>Cardio & Metabolism</h3>
+                    <p>Blood pressure and weight response tendencies</p>
+                </div>
+                <div class="discovery-card">
+                    <div class="discovery-icon">✨</div>
+                    <h3>Lifestyle Optimization</h3>
+                    <p>Simple experiments tailored to your genetics</p>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:48px;">
+                <button class="btn-primary btn-large" onclick="scrollToUpload()">
+                    Analyze My DNA for $39
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sample Insight Preview -->
+    <section class="sample-insight">
+        <div class="container">
+            <div class="section-header">
+                <h2>See What You'll Get</h2>
+                <p>A preview of clarity—not confusing charts</p>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon">☕</div>
+                    <div class="insight-title">CYP1A2 — Caffeine Metabolism</div>
+                </div>
+                <div class="insight-status">Intermediate</div>
+                <div class="insight-body">
+                    <h4>What It Means:</h4>
+                    <p>You metabolize caffeine at a moderate rate. Afternoon intake may affect sleep quality and reduce deep sleep cycles.</p>
+                    <div class="insight-action">
+                        <strong>Recommended Action:</strong>
+                        Limit caffeine after 2 PM to optimize sleep recovery.
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="how-it-works">
+    <!-- How It Works -->
+    <section>
         <div class="container">
             <div class="section-header">
                 <h2>How It Works</h2>
-                <p>Three steps to finally understand what your DNA means for your health</p>
+                <p>Three simple steps to understand your DNA</p>
             </div>
             <div class="steps">
-                <div class="step-card">
+                <div class="step">
                     <div class="step-number">1</div>
-                    <h3>Upload Your Raw Data</h3>
-                    <p>Export your raw DNA file from 23andMe or AncestryDNA. Takes 30 seconds.</p>
-                    <p class="detail">We support .txt and .csv files. Your data is encrypted, processed, then deleted. We never store your raw genome.</p>
+                    <h3>Download Raw DNA File</h3>
+                    <p>Get it from 23andMe or Ancestry in minutes. We'll show you exactly how.</p>
                 </div>
-                <div class="step-card">
+                <div class="step">
                     <div class="step-number">2</div>
-                    <h3>AI Analysis</h3>
-                    <p>Our system cross-references your variants with ClinVar, PharmGKB, and peer-reviewed research.</p>
-                    <p class="detail">Not generic advice—specific insights about MTHFR, CYP enzymes, vitamin D receptors, caffeine metabolism, and 150+ other variants.</p>
+                    <h3>Upload Securely</h3>
+                    <p>Encrypted upload. Processed once. Deleted after report delivery.</p>
                 </div>
-                <div class="step-card">
+                <div class="step">
                     <div class="step-number">3</div>
-                    <h3>Get Your Blueprint</h3>
-                    <p>Receive actionable reports in plain English—not genetic jargon.</p>
-                    <p class="detail">See your top health insights free. Unlock the full analysis with supplement protocols, medication guidance, and lifestyle recommendations.</p>
+                    <h3>View Your Personalized Report</h3>
+                    <p>Clear, actionable insights delivered instantly—not genetic jargon.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="analyzer" id="analyze">
+    <!-- What's Included -->
+    <section style="background:#F9FAFB;">
         <div class="container">
             <div class="section-header">
-                <h2>Upload &amp; Analyze Now</h2>
-                <p>Drop your raw DNA file and get your report bundle.</p>
+                <h2>What's Included</h2>
+                <p>Everything you need to take action on your wellness</p>
             </div>
-            <div class="analyzer-card">
+            <div class="included-list">
+                <div class="included-item">
+                    <div class="included-check">✓</div>
+                    <div class="included-text">
+                        <strong>Executive summary in plain English</strong>
+                        <p>No jargon—just clear explanations</p>
+                    </div>
+                </div>
+                <div class="included-item">
+                    <div class="included-check">✓</div>
+                    <div class="included-text">
+                        <strong>5–10 top health insights</strong>
+                        <p>Your most actionable genetic findings</p>
+                    </div>
+                </div>
+                <div class="included-item">
+                    <div class="included-check">✓</div>
+                    <div class="included-text">
+                        <strong>Medication interaction overview</strong>
+                        <p>Pharmacogenomic quick card to share with your doctor</p>
+                    </div>
+                </div>
+                <div class="included-item">
+                    <div class="included-check">✓</div>
+                    <div class="included-text">
+                        <strong>Lifestyle action steps</strong>
+                        <p>Practical experiments tailored to your genetics</p>
+                    </div>
+                </div>
+                <div class="included-item">
+                    <div class="included-check">✓</div>
+                    <div class="included-text">
+                        <strong>Confidence & limitations explained</strong>
+                        <p>Honest context about what your data can and can't tell you</p>
+                    </div>
+                </div>
+            </div>
+            <div class="disclaimer">
+                <strong>Important:</strong> DNA Decoder focuses on wellness and medication insights.
+                It does not diagnose disease. This is educational, not diagnostic.
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Understand Your DNA Today</h2>
+                <p>One simple price. No subscription.</p>
+            </div>
+            <div class="pricing-card">
+                <h3>DNA Decoder</h3>
+                <div class="price">$39</div>
+                <p class="price-detail">One-time payment • Instant digital delivery</p>
+                <div class="pricing-cta">
+                    <button class="btn-primary btn-large" onclick="scrollToUpload()">
+                        Analyze My DNA for $39
+                    </button>
+                </div>
+                <p class="pricing-note">Launch price • No subscription required</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section class="upload" id="analyze">
+        <div class="container">
+            <div class="section-header">
+                <h2>Upload & Analyze Now</h2>
+                <p>Your report is just a few clicks away</p>
+            </div>
+            <div class="upload-card">
                 <form id="analyzeForm">
                     <label for="subject_name">Name (optional)</label>
                     <input id="subject_name" name="subject_name" type="text" placeholder="Jane Doe">
 
-                    <label for="genome_file">Raw DNA file (.txt/.csv)</label>
+                    <label for="genome_file">Raw DNA file (.txt or .csv)</label>
                     <input id="genome_file" name="genome_file" type="file" accept=".txt,.csv" required>
 
-                    <div style="margin-top:16px;">
-                        <button class="btn-primary btn-lg" type="submit">Analyze Genome</button>
-                    </div>
+                    <button class="btn-primary btn-large" type="submit" style="width:100%;">
+                        Analyze My DNA
+                    </button>
                 </form>
                 <div id="status"></div>
             </div>
 
-            <!-- Teaser results panel (hidden until analysis completes) -->
-            <div id="resultsPanel" style="display:none; margin-top:48px;">
-                <div class="section-header" style="margin-bottom:24px;">
-                    <h2 style="font-size:1.6rem;">Here's What We Found</h2>
-                    <p id="statsBar" style="color:#a1a1aa; font-size:0.95rem;"></p>
+            <!-- Results Panel (hidden until analysis completes) -->
+            <div id="resultsPanel" style="display:none;">
+                <div class="section-header" style="margin-top:64px; margin-bottom:32px;">
+                    <h2>Here's What We Found</h2>
                 </div>
-
-                <div id="teaserCards" style="display:grid; gap:20px; margin-bottom:40px;"></div>
-
-                <!-- Step 1: Initial CTA -->
-                <div id="ctaBox" style="text-align:center; background:linear-gradient(135deg,#18181b,#27272a); border:1px solid #3f3f46; border-radius:16px; padding:40px 32px;">
-                    <p style="color:#a1a1aa; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Your full analysis is ready</p>
-                    <h3 style="font-size:1.5rem; margin-bottom:12px;">Unlock Everything — $79</h3>
-                    <p style="color:#a1a1aa; max-width:480px; margin:0 auto 24px; line-height:1.6;">
-                        Get all 4 personalized reports: Genetic Health deep-dive, Disease Risk Screen,
-                        Actionable Health Protocol, and a plain-English Master Summary written so
-                        anyone can understand it.
+                <div class="results-stats">
+                    <p id="statsBar"></p>
+                </div>
+                <div id="teaserCards"></div>
+                <div class="unlock-cta">
+                    <h3>Unlock Your Full Report</h3>
+                    <p>
+                        Get your complete Core Report with personalized wellness insights,
+                        medication response guidance, and actionable lifestyle recommendations.
                     </p>
-                    <button id="unlockBtn" class="btn-primary btn-lg" style="font-size:1.1rem; padding:14px 40px;">
-                        Unlock My Full Report — $79
+                    <button id="unlockBtn" class="btn-primary btn-large">
+                        Unlock Core Report — $39
                     </button>
-                    <p style="color:#52525b; font-size:0.78rem; margin-top:16px;">
-                        Secure checkout · Instant download · 4 reports included
+                    <p style="margin-top:16px; font-size:0.875rem; color:#6B7280;">
+                        Secure checkout • Instant download
                     </p>
-                </div>
-
-                <!-- Step 2: Order bump panel (shown after clicking Unlock) -->
-                <div id="orderPanel" style="display:none;">
-                    <style>
-                        .order-bump { background:#0f0f10; border:1px solid #3f3f46; border-radius:16px; overflow:hidden; }
-                        .order-bump-header { background:linear-gradient(135deg,#3b0764,#1e1b4b); padding:24px 28px; }
-                        .order-bump-header h3 { font-size:1.2rem; margin-bottom:4px; }
-                        .order-bump-header p { color:#a5b4fc; font-size:0.88rem; margin:0; }
-                        .order-base { display:flex; align-items:center; gap:14px; padding:20px 28px; border-bottom:1px solid #27272a; background:#18181b; }
-                        .order-base-check { color:#4ade80; font-size:1.3rem; flex-shrink:0; }
-                        .order-base-label { flex:1; }
-                        .order-base-label strong { font-size:0.95rem; }
-                        .order-base-label p { color:#71717a; font-size:0.8rem; margin:2px 0 0; }
-                        .order-base-price { color:#4ade80; font-weight:700; font-size:1rem; flex-shrink:0; }
-                        .addons-header { padding:14px 28px 10px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.12em; color:#52525b; border-bottom:1px solid #1f1f23; }
-                        .addon-row { display:flex; align-items:flex-start; gap:14px; padding:18px 28px; border-bottom:1px solid #1f1f23; cursor:pointer; transition:background 0.15s; }
-                        .addon-row:hover { background:#18181b; }
-                        .addon-row.featured { background:linear-gradient(135deg,#0f172a,#1e1b4b); border-left:3px solid #6366f1; }
-                        .addon-row input[type=checkbox] { margin-top:3px; flex-shrink:0; width:17px; height:17px; accent-color:#7c3aed; cursor:pointer; }
-                        .addon-icon { font-size:1.5rem; flex-shrink:0; width:32px; text-align:center; }
-                        .addon-body { flex:1; }
-                        .addon-body strong { font-size:0.93rem; display:block; margin-bottom:4px; }
-                        .addon-body p { color:#a1a1aa; font-size:0.82rem; line-height:1.5; margin:0 0 4px; }
-                        .addon-body .was { color:#52525b; font-size:0.78rem; text-decoration:line-through; }
-                        .addon-price { color:#e4e4e7; font-weight:700; font-size:0.95rem; flex-shrink:0; white-space:nowrap; }
-                        .addon-price .per { font-size:0.72rem; font-weight:400; color:#71717a; }
-                        .deep-dive-wrap { padding:0 0 0 60px; border-bottom:1px solid #1f1f23; }
-                        .deep-dive-wrap .addon-row { border-bottom:none; padding-left:0; }
-                        .order-total-bar { display:flex; align-items:center; justify-content:space-between; padding:20px 28px; background:#18181b; flex-wrap:wrap; gap:14px; }
-                        .order-total-bar .total-label { font-size:0.85rem; color:#a1a1aa; }
-                        .order-total-bar .total-amount { font-size:1.4rem; font-weight:800; color:#fff; }
-                        .order-total-bar .total-sub { font-size:0.75rem; color:#52525b; margin-top:2px; }
-                        #proceedBtn { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; border-radius:8px; padding:13px 32px; font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
-                        #proceedBtn:hover { opacity:0.9; }
-                        #proceedBtn:disabled { opacity:0.5; cursor:not-allowed; }
-                    </style>
-
-                    <div class="order-bump">
-                        <div class="order-bump-header">
-                            <h3>Complete Your Order</h3>
-                            <p>You're one step away — customize your package below before checkout.</p>
-                        </div>
-
-                        <!-- Base item (always included) -->
-                        <div class="order-base">
-                            <span class="order-base-check">✅</span>
-                            <div class="order-base-label">
-                                <strong>Full Genome Analysis — 4 Reports</strong>
-                                <p>Genetic Health · Disease Risk · Actionable Protocol · Plain-English Master Summary</p>
-                            </div>
-                            <span class="order-base-price">$79</span>
-                        </div>
-
-                        <div class="addons-header">Enhance your order</div>
-
-                        <!-- Add-on: Pretty Print -->
-                        <label class="addon-row" for="addon_pretty">
-                            <input type="checkbox" id="addon_pretty" data-price="19">
-                            <span class="addon-icon">🖨️</span>
-                            <div class="addon-body">
-                                <strong>Print-Ready Formatted Reports</strong>
-                                <p>Beautifully styled HTML versions of all 4 reports — designed to look great on screen and print perfectly. Share with your doctor or keep for your records.</p>
-                            </div>
-                            <div class="addon-price">+$19</div>
-                        </label>
-
-                        <!-- Add-on: Partner Report -->
-                        <label class="addon-row" for="addon_partner">
-                            <input type="checkbox" id="addon_partner" data-price="39">
-                            <span class="addon-icon">👥</span>
-                            <div class="addon-body">
-                                <strong>Partner or Family Member Report</strong>
-                                <p>Analyze a second DNA file — partner, parent, or sibling. Unlock your family's genetic picture together.</p>
-                                <span class="was">Normally $79</span>
-                            </div>
-                            <div class="addon-price">+$39</div>
-                        </label>
-
-                        <!-- Add-on: Annual Updates -->
-                        <label class="addon-row" for="addon_annual">
-                            <input type="checkbox" id="addon_annual" data-price="29" data-recurring="true">
-                            <span class="addon-icon">🔄</span>
-                            <div class="addon-body">
-                                <strong>Annual DNA Updates</strong>
-                                <p>Genetic research evolves every year. As new SNP associations are discovered, we'll re-run your analysis and deliver fresh updated reports automatically.</p>
-                            </div>
-                            <div class="addon-price">+$29<span class="per">/yr</span></div>
-                        </label>
-
-                        <!-- Nested: Raw Data Deep Dive (only shown when annual is checked) -->
-                        <div id="deepDiveWrap" class="deep-dive-wrap" style="display:none;">
-                            <label class="addon-row featured" for="addon_deep_dive">
-                                <input type="checkbox" id="addon_deep_dive" data-price="49">
-                                <span class="addon-icon">🧪</span>
-                                <div class="addon-body">
-                                    <strong>Raw Data Deep Dive — Subscribers Only</strong>
-                                    <p>Expanded analysis with 3× more SNPs screened, full ClinVar rare variant coverage, and pharmacogenomics at depth. The most complete picture of your genome available anywhere.</p>
-                                    <span class="was">Exclusive to annual subscribers</span>
-                                </div>
-                                <div class="addon-price">+$49</div>
-                            </label>
-                        </div>
-
-                        <!-- Total + proceed -->
-                        <div class="order-total-bar">
-                            <div>
-                                <div class="total-label">Order total</div>
-                                <div class="total-amount" id="orderTotal">$79</div>
-                                <div class="total-sub" id="orderSub">one-time</div>
-                            </div>
-                            <div style="text-align:right;">
-                                <button id="proceedBtn">Proceed to Checkout →</button>
-                                <div style="font-size:0.72rem; color:#52525b; margin-top:6px;">Secure checkout · Instant download</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Success / download panel (shown after payment) -->
-            <div id="successPanel" style="display:none; margin-top:48px; text-align:center;">
-                <div style="background:linear-gradient(135deg,#052e16,#14532d); border:1px solid #16a34a; border-radius:16px; padding:48px 32px;">
-                    <div style="font-size:3rem; margin-bottom:16px;">✅</div>
-                    <h3 style="font-size:1.4rem; margin-bottom:12px; color:#4ade80;">Payment Confirmed!</h3>
-                    <p id="downloadStatus" style="color:#a1a1aa; margin-bottom:24px;">Generating your personalized reports… this takes about 30 seconds.</p>
-                    <div id="downloadSpinner" style="font-size:1.5rem;">⏳</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="pricing" id="pricing">
+    <!-- FAQ -->
+    <section>
         <div class="container">
             <div class="section-header">
-                <h2>Unlock Your DNA</h2>
-                <p>See your top 3 insights free. Pay only if you want the full picture.</p>
+                <h2>Frequently Asked Questions</h2>
             </div>
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Free Preview</h3>
-                    <div class="price">$0</div>
-                    <p class="price-description">Proof that this actually works</p>
-                    <ul class="features">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Upload your DNA file</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Top 3 health insights revealed</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> See what you're missing</li>
-                        <li class="disabled"><span style="color:#52525b">×</span> Full reports locked</li>
-                    </ul>
-                    <button class="btn-outline btn-full" data-scroll="#analyze">Start Free</button>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3>Is this a medical diagnosis?</h3>
+                    <p>No. This is educational and wellness-oriented. If you have health concerns, share your report with a healthcare provider.</p>
                 </div>
-                <div class="pricing-card popular">
-                    <div class="popular-badge">Most Popular</div>
-                    <h3>Complete Analysis</h3>
-                    <div class="price">$79</div>
-                    <p class="price-description">Less than you paid for the test</p>
-                    <ul class="features">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> All 3 comprehensive reports</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Personalized supplement stack</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> 150+ health conditions</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Medication compatibility</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Downloadable PDFs</li>
-                    </ul>
-                    <button class="btn-primary btn-full" data-scroll="#analyze">Unlock for $79</button>
+                <div class="faq-item">
+                    <h3>Do I need a subscription?</h3>
+                    <p>No. This is a one-time purchase with instant access to your report.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Where do I get my raw DNA file?</h3>
+                    <p>We provide direct links to 23andMe and Ancestry instructions during the upload process. It takes about 2 minutes to download your file.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How long does it take?</h3>
+                    <p>Most reports are generated instantly after upload. Complex analyses may take up to 1 minute.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is my data stored?</h3>
+                    <p>No. Your file is encrypted during upload, processed once, and deleted immediately after your report is generated. We never store your raw genetic data.</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-logo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 15c6.667-6 13.333 0 20-6"/>
-                    <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/>
-                    <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/>
-                </svg>
-                Genome Intelligence
+                <div class="footer-logo-main">
+                    <img src="logo.png" alt="DNA Decoder">
+                    DNA Decoder
+                </div>
+                <div class="footer-logo-sub">by Helix Health</div>
             </div>
-            <p>© 2024 Genome Intelligence. Not medical advice. For educational purposes.</p>
+            <p>© 2026 Helix Health. For educational purposes only. Not medical advice.</p>
         </div>
     </footer>
 
     <script>
-        // Smooth scroll for data-scroll buttons
-        document.querySelectorAll('[data-scroll]').forEach((node) => {
-            node.addEventListener('click', () => {
-                const target = document.querySelector(node.getAttribute('data-scroll'));
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        });
+        // Scroll helper
+        function scrollToUpload() {
+            document.getElementById('analyze').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
-        // ── State ────────────────────────────────────────────────────────────
+        // State
         let currentAnalysisId = null;
         let currentSubjectName = null;
 
-        // ── Elements ─────────────────────────────────────────────────────────
-        const form          = document.getElementById('analyzeForm');
-        const statusEl      = document.getElementById('status');
-        const resultsPanel  = document.getElementById('resultsPanel');
-        const teaserCards   = document.getElementById('teaserCards');
-        const statsBar      = document.getElementById('statsBar');
-        const unlockBtn     = document.getElementById('unlockBtn');
-        const successPanel  = document.getElementById('successPanel');
-        const downloadStatus = document.getElementById('downloadStatus');
-        const downloadSpinner = document.getElementById('downloadSpinner');
+        // Elements
+        const form = document.getElementById('analyzeForm');
+        const statusEl = document.getElementById('status');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const teaserCards = document.getElementById('teaserCards');
+        const statsBar = document.getElementById('statsBar');
+        const unlockBtn = document.getElementById('unlockBtn');
 
-        // ── Analysis submit ───────────────────────────────────────────────────
+        // Analysis submit
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            statusEl.textContent = 'Running analysis… this can take up to a minute.';
-            statusEl.style.color = '#a1a1aa';
+            statusEl.textContent = 'Analyzing your DNA... this takes about 30 seconds.';
+            statusEl.style.color = '#6B7280';
             resultsPanel.style.display = 'none';
 
             const formData = new FormData(form);
             currentSubjectName = formData.get('subject_name') || null;
+
             // Pass referral code if visitor arrived via a ref link
             const fromRef = new URLSearchParams(window.location.search).get('ref');
             if (fromRef) formData.append('from_ref', fromRef);
@@ -824,40 +1119,30 @@
                 showTeasers(data);
             } catch (err) {
                 statusEl.textContent = `Error: ${err.message}`;
-                statusEl.style.color = '#f87171';
+                statusEl.style.color = '#DC2626';
             }
         });
 
-        // ── Render teaser cards ───────────────────────────────────────────────
+        // Render teaser cards
         function showTeasers(data) {
             const s = data.stats || {};
             const parts = [];
             if (s.snps_analyzed) parts.push(`${s.snps_analyzed.toLocaleString()} SNPs analyzed`);
-            if (s.high_impact)   parts.push(`${s.high_impact} high-impact findings`);
-            if (s.drug_interactions) parts.push(`${s.drug_interactions} drug interactions`);
-            if (s.disease_variants)  parts.push(`${s.disease_variants} disease variants`);
-            statsBar.textContent = parts.join(' · ');
+            if (s.high_impact) parts.push(`${s.high_impact} high-impact findings`);
+            if (s.drug_interactions) parts.push(`${s.drug_interactions} medication interactions`);
+            statsBar.textContent = parts.join(' • ');
 
             teaserCards.innerHTML = '';
             (data.teaser || []).forEach(card => {
                 const el = document.createElement('div');
-                el.style.cssText = `
-                    background:#18181b; border:1px solid #3f3f46; border-radius:12px;
-                    padding:24px 28px; position:relative; overflow:hidden;
-                `;
+                el.className = 'teaser-card';
                 el.innerHTML = `
-                    <div style="display:flex; align-items:flex-start; gap:16px;">
-                        <span style="font-size:1.8rem; line-height:1;">${card.icon}</span>
-                        <div>
-                            <h4 style="font-size:1.05rem; margin-bottom:8px;">${card.title}</h4>
-                            <p style="color:#a1a1aa; line-height:1.6; margin-bottom:12px;">${card.body}</p>
-                            <p style="color:#7c3aed; font-style:italic; font-size:0.9rem;">
-                                🔒 ${card.hook}
-                            </p>
-                        </div>
+                    <div class="teaser-header">
+                        <div class="teaser-icon">${card.icon}</div>
+                        <div class="teaser-title">${card.title}</div>
                     </div>
-                    <div style="position:absolute; top:0; right:0; bottom:0; width:4px;
-                                background:linear-gradient(180deg,#7c3aed,#4f46e5);"></div>
+                    <div class="teaser-body">${card.body}</div>
+                    <div class="teaser-hook">🔒 ${card.hook}</div>
                 `;
                 teaserCards.appendChild(el);
             });
@@ -866,128 +1151,38 @@
             resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ── Step 1: Unlock button → show order bump panel ─────────────────────
-        const ctaBox      = document.getElementById('ctaBox');
-        const orderPanel  = document.getElementById('orderPanel');
-        const proceedBtn  = document.getElementById('proceedBtn');
-        const orderTotal  = document.getElementById('orderTotal');
-        const orderSub    = document.getElementById('orderSub');
-        const deepDiveWrap = document.getElementById('deepDiveWrap');
-        const annualChk   = document.getElementById('addon_annual');
-        const deepChk     = document.getElementById('addon_deep_dive');
-
-        unlockBtn.addEventListener('click', () => {
+        // Unlock button: redirect to Core checkout
+        unlockBtn.addEventListener('click', async () => {
             if (!currentAnalysisId) return;
-            ctaBox.style.display = 'none';
-            orderPanel.style.display = 'block';
-            orderPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-
-        // ── Order bump: live total + nested deep dive reveal ──────────────────
-        function recalcTotal() {
-            let oneTime = 79;
-            let recurring = 0;
-            let hasRecurring = false;
-            document.querySelectorAll('#orderPanel input[type=checkbox]').forEach(cb => {
-                if (!cb.checked) return;
-                const price = parseInt(cb.dataset.price || '0');
-                if (cb.dataset.recurring) { recurring += price; hasRecurring = true; }
-                else oneTime += price;
-            });
-            if (hasRecurring) {
-                orderTotal.textContent = `$${oneTime} + $${recurring}/yr`;
-                orderSub.textContent = 'then $' + recurring + '/yr after';
-            } else {
-                orderTotal.textContent = `$${oneTime}`;
-                orderSub.textContent = 'one-time';
-            }
-        }
-
-        annualChk.addEventListener('change', () => {
-            deepDiveWrap.style.display = annualChk.checked ? 'block' : 'none';
-            if (!annualChk.checked) deepChk.checked = false;
-            recalcTotal();
-        });
-
-        document.querySelectorAll('#orderPanel input[type=checkbox]').forEach(cb => {
-            cb.addEventListener('change', recalcTotal);
-        });
-
-        // ── Step 2: Proceed to Stripe checkout ────────────────────────────────
-        proceedBtn.addEventListener('click', async () => {
-            if (!currentAnalysisId) return;
-            proceedBtn.textContent = 'Redirecting to checkout…';
-            proceedBtn.disabled = true;
-
-            const addOns = [];
-            if (document.getElementById('addon_pretty').checked)    addOns.push('pretty_print');
-            if (document.getElementById('addon_partner').checked)   addOns.push('partner');
-            if (document.getElementById('addon_annual').checked)    addOns.push('annual');
-            if (document.getElementById('addon_deep_dive').checked) addOns.push('deep_dive');
+            unlockBtn.textContent = 'Redirecting to checkout...';
+            unlockBtn.disabled = true;
 
             try {
-                const resp = await fetch('/api/checkout', {
+                const resp = await fetch('/api/checkout-core', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         analysis_id: currentAnalysisId,
                         subject_name: currentSubjectName || 'report',
-                        add_ons: addOns,
                     }),
                 });
                 if (!resp.ok) throw new Error('Checkout session failed');
                 const { checkout_url } = await resp.json();
                 window.location.href = checkout_url;
             } catch (err) {
-                proceedBtn.textContent = 'Proceed to Checkout →';
-                proceedBtn.disabled = false;
+                unlockBtn.textContent = 'Unlock Core Report — $39';
+                unlockBtn.disabled = false;
                 statusEl.textContent = `Checkout error: ${err.message}`;
-                statusEl.style.color = '#f87171';
+                statusEl.style.color = '#DC2626';
             }
         });
 
-        // ── Success page: auto-download after Stripe redirect ─────────────────
-        (async function handleSuccess() {
+        // Handle success redirect from Core checkout
+        (async function handleCoreSuccess() {
             const params = new URLSearchParams(window.location.search);
-            const sessionId   = params.get('session_id');
-            const analysisId  = params.get('analysis_id');
-            const subjectName = params.get('subject_name') || 'report';
-            const addOnsParam = params.get('add_ons') || '';
-            if (!sessionId || !analysisId) return;
-
-            const addOns = addOnsParam ? addOnsParam.split(',') : [];
-            const extras = [];
-            if (addOns.includes('pretty_print')) extras.push('print-ready HTML reports');
-            if (addOns.includes('partner'))      extras.push('partner report instructions');
-            if (addOns.includes('annual'))       extras.push('annual updates activated');
-            if (addOns.includes('deep_dive'))    extras.push('raw data deep dive');
-            const extrasNote = extras.length ? ` + ${extras.join(', ')}` : '';
-
-            // Hide upload form, show success panel
-            document.getElementById('analyzeForm').closest('section').style.display = 'none';
-            successPanel.style.display = 'block';
-            successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            downloadStatus.textContent = `Generating your personalized reports${extrasNote}… this takes about 30 seconds.`;
-
-            try {
-                const url = `/api/complete?session_id=${encodeURIComponent(sessionId)}&analysis_id=${encodeURIComponent(analysisId)}&subject_name=${encodeURIComponent(subjectName)}`;
-                const resp = await fetch(url);
-                if (!resp.ok) {
-                    const txt = await resp.text();
-                    throw new Error(txt || 'Download failed');
-                }
-                const blob = await resp.blob();
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `genome-analysis-${subjectName}.zip`;
-                a.click();
-                URL.revokeObjectURL(a.href);
-
-                downloadStatus.textContent = 'Your reports are downloading now. Check your Downloads folder!';
-                downloadSpinner.textContent = '🎉';
-            } catch (err) {
-                downloadStatus.textContent = `Something went wrong: ${err.message}`;
-                downloadSpinner.textContent = '❌';
+            if (params.get('success') === 'core') {
+                // Show success message (the thank-you-core.html handles the download)
+                document.getElementById('analyze').scrollIntoView({ behavior: 'smooth' });
             }
         })();
     </script>
