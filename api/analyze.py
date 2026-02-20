@@ -212,6 +212,11 @@ def index():
     return send_from_directory(REPO_ROOT, 'index.html')
 
 
+@app.get('/logo.svg')
+def logo():
+    return send_from_directory(REPO_ROOT, 'logo.svg')
+
+
 @app.post('/api/analyze')
 def analyze():
     _cleanup_old_sessions()
@@ -403,6 +408,62 @@ def checkout_core():
     return jsonify({"checkout_url": checkout_session.url})
 
 
+@app.post('/api/checkout-deep-dive')
+def checkout_deep_dive():
+    """Create Stripe Checkout for $79 Deep Dive upgrade (after Core purchase)."""
+    data = request.get_json(silent=True) or {}
+    analysis_id = data.get("analysis_id", "")
+
+    session_dir = SESSIONS_DIR / analysis_id
+    if not analysis_id or not session_dir.exists():
+        return jsonify({'error': 'Invalid or expired analysis session'}), 400
+
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    if not stripe.api_key:
+        return jsonify({'error': 'Payment not configured'}), 503
+
+    # Pull the referrer code
+    from_ref_file = session_dir / "from_ref.txt"
+    from_ref = from_ref_file.read_text(encoding='utf-8').strip() if from_ref_file.exists() else None
+
+    # Read subject name from session
+    name_file = session_dir / "subject_name.txt"
+    subject_name = name_file.read_text(encoding='utf-8').strip() if name_file.exists() else "report"
+
+    metadata = {"analysis_id": analysis_id, "subject_name": subject_name, "tier": "deep_dive"}
+    if from_ref:
+        metadata["from_ref"] = from_ref
+
+    checkout_session = stripe.checkout.Session.create(
+        mode="payment",
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "unit_amount": 7900,  # $79.00
+                "product_data": {
+                    "name": "DNA Decoder Deep Dive Report",
+                    "description": "Clinical variant screening, confirmatory testing guidance, full pharmacogenomics table",
+                },
+            },
+            "quantity": 1,
+        }],
+        success_url=(
+            f"{BASE_URL}/success"
+            f"?session_id={{CHECKOUT_SESSION_ID}}"
+            f"&analysis_id={analysis_id}"
+            f"&subject_name={subject_name}"
+        ),
+        cancel_url=(
+            f"{BASE_URL}/success-core"
+            f"?session_id="
+            f"&analysis_id={analysis_id}"
+        ),
+        metadata=metadata,
+    )
+
+    return jsonify({"checkout_url": checkout_session.url})
+
+
 @app.get('/success')
 def success_page():
     return send_from_directory(REPO_ROOT, 'thank-you.html')
@@ -426,16 +487,15 @@ def complete_core():
 
     # Verify payment with Stripe
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    subject_name = None
     if stripe.api_key:
         try:
             stripe_session = stripe.checkout.Session.retrieve(session_id)
             if stripe_session.payment_status != "paid":
                 return jsonify({'error': 'Payment not completed'}), 402
+            subject_name = stripe_session.metadata.get('subject_name') or None
         except stripe.StripeError as e:
             return jsonify({'error': f'Payment verification failed: {e}'}), 402
-
-    # Load subject name from metadata
-    subject_name = stripe_session.metadata.get('subject_name') or None
 
     # Generate Core Report
     results_path = session_dir / "comprehensive_results.json"

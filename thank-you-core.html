@@ -207,9 +207,24 @@
 
   // Upgrade to Deep Dive
   document.getElementById('upgradeBtn').onclick = async () => {
-    // For now, just redirect to checkout for Deep Dive
-    // TODO: Implement upgrade flow
-    window.location.href = `/?analysis_id=${analysisId}&upgrade=true`;
+    const btn = document.getElementById('upgradeBtn');
+    btn.textContent = 'Redirecting to checkout...';
+    btn.disabled = true;
+
+    try {
+      const resp = await fetch('/api/checkout-deep-dive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis_id: analysisId }),
+      });
+      if (!resp.ok) throw new Error('Checkout session failed');
+      const { checkout_url } = await resp.json();
+      window.location.href = checkout_url;
+    } catch (err) {
+      btn.textContent = 'Upgrade to Deep Dive — $79';
+      btn.disabled = false;
+      alert('Checkout error: ' + err.message);
+    }
   };
 </script>
 

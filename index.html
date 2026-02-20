@@ -12,20 +12,25 @@
         }
 
         :root {
-            --charcoal: #0F1115;
-            --white: #F7F8FA;
-            --purple: #6D28D9;
-            --purple-dark: #5B21B6;
-            --slate: #4B5563;
-            --success: #16A34A;
-            --border: #E5E7EB;
-            --text: #1F2937;
-            --text-light: #6B7280;
+            --bg: #09090b;
+            --bg-card: #111113;
+            --bg-elevated: #18181b;
+            --bg-subtle: #1c1c1f;
+            --border: #27272a;
+            --border-light: #3f3f46;
+            --text: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --purple: #7c3aed;
+            --purple-dark: #6d28d9;
+            --purple-light: #a78bfa;
+            --purple-glow: rgba(124, 58, 237, 0.15);
+            --success: #22c55e;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-            background: var(--white);
+            background: var(--bg);
             color: var(--text);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
@@ -39,12 +44,13 @@
 
         /* Navigation */
         nav {
-            background: white;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         nav .container {
@@ -58,6 +64,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            text-decoration: none;
         }
 
         .logo-main {
@@ -66,18 +73,18 @@
             gap: 10px;
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--charcoal);
-            text-decoration: none;
+            color: var(--text);
         }
 
         .logo-main img {
             width: 40px;
             height: 40px;
+            filter: invert(1);
         }
 
         .logo-sub {
             font-size: 0.7rem;
-            color: var(--text-light);
+            color: var(--text-muted);
             padding-left: 50px;
             font-weight: 400;
         }
@@ -104,6 +111,7 @@
 
         .btn-primary:hover {
             background: var(--purple-dark);
+            box-shadow: 0 0 24px var(--purple-glow);
         }
 
         .btn-large {
@@ -112,10 +120,29 @@
             font-weight: 600;
         }
 
+        .btn-secondary {
+            background: transparent;
+            color: var(--purple-light);
+            border: 1px solid var(--border-light);
+            font-size: 0.95rem;
+            padding: 12px 28px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--purple);
+            background: var(--purple-glow);
+        }
+
+        .under-cta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
         /* Hero Section */
         .hero {
-            padding: 80px 0;
-            background: linear-gradient(to bottom, #FAFBFC, white);
+            padding: 100px 0 80px;
+            background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%);
         }
 
         .hero .container {
@@ -130,26 +157,40 @@
             font-weight: 700;
             line-height: 1.1;
             margin-bottom: 24px;
-            color: var(--charcoal);
+            color: var(--text);
             letter-spacing: -0.02em;
         }
 
         .hero-content p.subheadline {
             font-size: 1.25rem;
-            color: var(--slate);
+            color: var(--text-secondary);
             margin-bottom: 32px;
             line-height: 1.7;
         }
 
         .hero-cta {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+        }
+
+        .hero-secondary-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--purple-light);
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hero-secondary-link:hover {
+            text-decoration: underline;
         }
 
         .hero-benefits {
             display: flex;
             gap: 24px;
             font-size: 0.9rem;
-            color: var(--text-light);
+            color: var(--text-muted);
+            margin-top: 24px;
         }
 
         .hero-benefit {
@@ -165,48 +206,11 @@
         }
 
         .hero-visual {
-            background: white;
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        .hero-visual img {
-            width: 100%;
-            height: auto;
-        }
-
-        /* Social Proof Strip */
-        .social-proof {
-            background: #F9FAFB;
-            padding: 32px 0;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .proof-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 32px;
-            text-align: center;
-        }
-
-        .proof-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .proof-icon {
-            font-size: 1.5rem;
-        }
-
-        .proof-text {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            line-height: 1.4;
+            box-shadow: 0 4px 40px rgba(0,0,0,0.3);
         }
 
         /* Section */
@@ -223,130 +227,142 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 16px;
-            color: var(--charcoal);
+            color: var(--text);
         }
 
         .section-header p {
             font-size: 1.125rem;
-            color: var(--text-light);
+            color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto;
         }
 
-        /* What You'll Discover */
-        .discovery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
+        .section-small-text {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
-        .discovery-card {
-            background: white;
+        /* Free Preview Teaser */
+        .preview-section {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .preview-card {
+            background: var(--bg-elevated);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 32px;
+            padding: 28px;
+            position: relative;
+        }
+
+        .preview-card-gene {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--purple-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .preview-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .preview-card-status {
+            display: inline-block;
+            background: rgba(124, 58, 237, 0.15);
+            color: var(--purple-light);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .preview-card-body {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .preview-card-lock {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--purple-light);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preview-card-lock:hover {
+            color: var(--purple);
+        }
+
+        .preview-unlock {
             text-align: center;
         }
 
-        .discovery-icon {
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-        }
-
-        .discovery-card h3 {
+        .preview-unlock p {
             font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--charcoal);
+            color: var(--text-secondary);
+            margin-bottom: 20px;
         }
 
-        .discovery-card p {
-            font-size: 0.9375rem;
-            color: var(--text-light);
+        /* What You'll Discover */
+        .discover-section {
+            background: var(--bg);
+        }
+
+        .discover-list {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .discover-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 14px 0;
+        }
+
+        .discover-bullet {
+            color: var(--purple-light);
+            font-size: 1.1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .discover-text {
+            font-size: 1.0625rem;
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
-        /* Sample Insight */
-        .sample-insight {
-            background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
-            padding: 100px 0;
-        }
-
-        .insight-card {
-            max-width: 700px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(109,40,217,0.15);
-        }
-
-        .insight-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .insight-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--purple), var(--purple-dark));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-        }
-
-        .insight-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--charcoal);
-        }
-
-        .insight-status {
-            display: inline-block;
-            background: #FEF3C7;
-            color: #92400E;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-        }
-
-        .insight-body h4 {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .insight-body p {
-            font-size: 1rem;
-            line-height: 1.7;
-            color: var(--slate);
-            margin-bottom: 16px;
-        }
-
-        .insight-action {
-            background: #F9FAFB;
-            padding: 16px;
-            border-radius: 8px;
-            border-left: 3px solid var(--purple);
-        }
-
-        .insight-action strong {
-            display: block;
-            margin-bottom: 4px;
-            color: var(--charcoal);
-        }
-
         /* How It Works */
+        .how-section {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
         .steps {
             display: flex;
             gap: 48px;
@@ -377,15 +393,26 @@
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 12px;
-            color: var(--charcoal);
+            color: var(--text);
         }
 
         .step p {
-            color: var(--text-light);
+            color: var(--text-secondary);
             line-height: 1.6;
         }
 
+        .how-note {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
         /* What's Included */
+        .included-section {
+            background: var(--bg);
+        }
+
         .included-list {
             max-width: 600px;
             margin: 0 auto;
@@ -415,58 +442,103 @@
 
         .included-text strong {
             display: block;
-            margin-bottom: 4px;
-            color: var(--charcoal);
+            margin-bottom: 2px;
+            color: var(--text);
         }
 
-        .included-text p {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .disclaimer {
-            background: #F9FAFB;
-            padding: 20px;
-            border-radius: 8px;
+        .included-note {
+            text-align: center;
             margin-top: 32px;
-            font-size: 0.875rem;
-            color: var(--text-light);
-            line-height: 1.6;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Trust & Safety */
+        .trust-section {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .trust-item {
+            text-align: center;
+        }
+
+        .trust-icon {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .trust-item p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .trust-disclaimer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Pricing */
-        .pricing {
-            background: linear-gradient(to bottom, white, #F9FAFB);
+        .pricing-section {
+            background: var(--bg);
         }
 
         .pricing-card {
             max-width: 500px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-elevated);
             border: 2px solid var(--purple);
             border-radius: 20px;
             padding: 48px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(109,40,217,0.1);
+            box-shadow: 0 0 60px rgba(124, 58, 237, 0.1);
         }
 
         .pricing-card h3 {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 8px;
-            color: var(--charcoal);
+            color: var(--text);
+        }
+
+        .pricing-badge {
+            display: inline-block;
+            background: rgba(124, 58, 237, 0.15);
+            color: var(--purple-light);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
         }
 
         .price {
             font-size: 4rem;
             font-weight: 700;
-            color: var(--purple);
+            color: var(--purple-light);
             margin: 16px 0;
         }
 
         .price-detail {
             font-size: 1rem;
-            color: var(--text-light);
+            color: var(--text-muted);
             margin-bottom: 32px;
         }
 
@@ -476,29 +548,87 @@
 
         .pricing-note {
             font-size: 0.875rem;
-            color: var(--text-light);
+            color: var(--text-muted);
+        }
+
+        /* Deep Dive Tease */
+        .deepdive-section {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 80px 0;
+        }
+
+        .deepdive-card {
+            max-width: 650px;
+            margin: 0 auto;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .deepdive-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .deepdive-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--purple-light);
+            margin: 12px 0 20px;
+        }
+
+        .deepdive-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto 24px;
+        }
+
+        .deepdive-list li {
+            list-style: none;
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .deepdive-list li::before {
+            content: '•';
+            color: var(--purple-light);
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .deepdive-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 12px;
         }
 
         /* Upload Section */
-        .upload {
-            background: #F9FAFB;
+        .upload-section {
+            background: var(--bg-subtle);
         }
 
         .upload-card {
             max-width: 600px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 40px rgba(0,0,0,0.3);
         }
 
         .upload-card label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: var(--charcoal);
+            color: var(--text);
             font-size: 0.9375rem;
         }
 
@@ -509,7 +639,12 @@
             border-radius: 8px;
             font-size: 1rem;
             margin-bottom: 20px;
-            background: white;
+            background: var(--bg-elevated);
+            color: var(--text);
+        }
+
+        .upload-card input::placeholder {
+            color: var(--text-muted);
         }
 
         .upload-card input:focus {
@@ -517,10 +652,14 @@
             border-color: var(--purple);
         }
 
+        .upload-card input[type="file"] {
+            cursor: pointer;
+        }
+
         #status {
             margin-top: 16px;
             text-align: center;
-            color: var(--text-light);
+            color: var(--text-muted);
             min-height: 24px;
         }
 
@@ -534,17 +673,18 @@
             text-align: center;
             margin-bottom: 32px;
             padding: 20px;
-            background: #F9FAFB;
+            background: var(--bg-elevated);
             border-radius: 12px;
+            border: 1px solid var(--border);
         }
 
         .results-stats p {
             font-size: 0.9375rem;
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .teaser-card {
-            background: white;
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-left: 4px solid var(--purple);
             border-radius: 12px;
@@ -566,23 +706,24 @@
         .teaser-title {
             font-size: 1.125rem;
             font-weight: 600;
-            color: var(--charcoal);
+            color: var(--text);
         }
 
         .teaser-body {
-            color: var(--slate);
+            color: var(--text-secondary);
             line-height: 1.7;
             margin-bottom: 16px;
         }
 
         .teaser-hook {
-            color: var(--purple);
+            color: var(--purple-light);
             font-style: italic;
             font-size: 0.9375rem;
         }
 
         .unlock-cta {
-            background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 48px;
             text-align: center;
@@ -593,25 +734,29 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 16px;
-            color: var(--charcoal);
+            color: var(--text);
         }
 
         .unlock-cta p {
             font-size: 1.125rem;
-            color: var(--slate);
+            color: var(--text-secondary);
             max-width: 500px;
             margin: 0 auto 32px;
             line-height: 1.7;
         }
 
         /* FAQ */
+        .faq-section {
+            background: var(--bg);
+        }
+
         .faq-list {
             max-width: 700px;
             margin: 0 auto;
         }
 
         .faq-item {
-            background: white;
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
@@ -622,17 +767,32 @@
             font-size: 1.125rem;
             font-weight: 600;
             margin-bottom: 12px;
-            color: var(--charcoal);
+            color: var(--text);
         }
 
         .faq-item p {
-            color: var(--slate);
+            color: var(--text-secondary);
             line-height: 1.7;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            padding: 100px 0;
+            background: radial-gradient(ellipse at 50% 100%, rgba(124,58,237,0.1) 0%, transparent 60%);
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: var(--text);
         }
 
         /* Footer */
         footer {
-            background: var(--charcoal);
+            background: var(--bg);
+            border-top: 1px solid var(--border);
             color: white;
             padding: 48px 0;
         }
@@ -655,29 +815,29 @@
             gap: 10px;
             font-weight: 600;
             font-size: 1rem;
+            color: var(--text);
         }
 
         .footer-logo-main img {
             width: 32px;
             height: 32px;
+            filter: invert(1);
         }
 
         .footer-logo-sub {
             font-size: 0.7rem;
-            color: #9CA3AF;
+            color: var(--text-muted);
             padding-left: 42px;
         }
 
         footer p {
             font-size: 0.875rem;
-            color: #9CA3AF;
+            color: var(--text-muted);
         }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .hero .container,
-            .discovery-grid,
-            .steps {
+            .hero .container {
                 grid-template-columns: 1fr;
             }
 
@@ -685,12 +845,22 @@
                 font-size: 2.5rem;
             }
 
-            .proof-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .hero-visual {
+                display: none;
             }
 
-            .discovery-grid {
-                gap: 20px;
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .trust-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
             }
 
             footer .container {
@@ -701,19 +871,35 @@
             .btn-large {
                 width: 100%;
             }
+
+            .hero-benefits {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            body {
+                padding-bottom: 80px;
+            }
         }
 
         /* Mobile sticky CTA */
+        .mobile-sticky-cta {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .mobile-sticky-cta {
+                display: block;
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: white;
+                background: rgba(9, 9, 11, 0.95);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
                 padding: 16px 20px;
                 border-top: 1px solid var(--border);
-                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
                 z-index: 50;
             }
         }
@@ -734,20 +920,22 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- SECTION 1: Hero -->
     <section class="hero">
         <div class="container">
             <div class="hero-content">
                 <h1>Understand Your DNA. Act on It Today.</h1>
                 <p class="subheadline">
-                    Upload your 23andMe or AncestryDNA file and get clear, personalized wellness
-                    and medication response insights — instantly.
+                    Upload your 23andMe or AncestryDNA file and instantly receive personalized
+                    wellness and medication response insights — explained in plain English.
                 </p>
                 <div class="hero-cta">
                     <button class="btn-primary btn-large" onclick="scrollToUpload()">
                         Analyze My DNA for $39
                     </button>
                 </div>
+                <div class="under-cta">One-time payment &bull; Instant report &bull; Secure upload</div>
+                <a class="hero-secondary-link" onclick="document.getElementById('preview').scrollIntoView({behavior:'smooth'})">See a Free Preview</a>
                 <div class="hero-benefits">
                     <div class="hero-benefit">One-time payment</div>
                     <div class="hero-benefit">Instant digital report</div>
@@ -755,102 +943,66 @@
                 </div>
             </div>
             <div class="hero-visual">
-                <!-- Placeholder for visual element -->
                 <svg viewBox="0 0 400 300" style="width:100%; height:auto;">
                     <defs>
                         <linearGradient id="helix-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#6D28D9;stop-opacity:0.2" />
-                            <stop offset="100%" style="stop-color:#5B21B6;stop-opacity:0.4" />
+                            <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:0.5" />
                         </linearGradient>
                     </defs>
-                    <!-- DNA Helix illustration -->
                     <path d="M 50 50 Q 100 30, 150 50 T 250 50 T 350 50"
-                          stroke="#6D28D9" stroke-width="8" fill="none" opacity="0.3"/>
+                          stroke="#7c3aed" stroke-width="8" fill="none" opacity="0.4"/>
                     <path d="M 50 80 Q 100 100, 150 80 T 250 80 T 350 80"
-                          stroke="#6D28D9" stroke-width="8" fill="none" opacity="0.3"/>
-                    <circle cx="50" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
-                    <circle cx="150" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
-                    <circle cx="250" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
-                    <circle cx="350" cy="50" r="12" fill="#6D28D9" opacity="0.6"/>
-                    <circle cx="100" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
-                    <circle cx="200" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
-                    <circle cx="300" cy="80" r="12" fill="#5B21B6" opacity="0.6"/>
-                    <!-- Connection lines -->
-                    <line x1="50" y1="50" x2="100" y2="80" stroke="#D1D5DB" stroke-width="2"/>
-                    <line x1="150" y1="50" x2="100" y2="80" stroke="#D1D5DB" stroke-width="2"/>
-                    <line x1="150" y1="50" x2="200" y2="80" stroke="#D1D5DB" stroke-width="2"/>
-                    <line x1="250" y1="50" x2="200" y2="80" stroke="#D1D5DB" stroke-width="2"/>
-                    <line x1="250" y1="50" x2="300" y2="80" stroke="#D1D5DB" stroke-width="2"/>
-                    <line x1="350" y1="50" x2="300" y2="80" stroke="#D1D5DB" stroke-width="2"/>
+                          stroke="#7c3aed" stroke-width="8" fill="none" opacity="0.4"/>
+                    <circle cx="50" cy="50" r="12" fill="#7c3aed" opacity="0.6"/>
+                    <circle cx="150" cy="50" r="12" fill="#7c3aed" opacity="0.6"/>
+                    <circle cx="250" cy="50" r="12" fill="#7c3aed" opacity="0.6"/>
+                    <circle cx="350" cy="50" r="12" fill="#7c3aed" opacity="0.6"/>
+                    <circle cx="100" cy="80" r="12" fill="#6d28d9" opacity="0.6"/>
+                    <circle cx="200" cy="80" r="12" fill="#6d28d9" opacity="0.6"/>
+                    <circle cx="300" cy="80" r="12" fill="#6d28d9" opacity="0.6"/>
+                    <line x1="50" y1="50" x2="100" y2="80" stroke="#3f3f46" stroke-width="2"/>
+                    <line x1="150" y1="50" x2="100" y2="80" stroke="#3f3f46" stroke-width="2"/>
+                    <line x1="150" y1="50" x2="200" y2="80" stroke="#3f3f46" stroke-width="2"/>
+                    <line x1="250" y1="50" x2="200" y2="80" stroke="#3f3f46" stroke-width="2"/>
+                    <line x1="250" y1="50" x2="300" y2="80" stroke="#3f3f46" stroke-width="2"/>
+                    <line x1="350" y1="50" x2="300" y2="80" stroke="#3f3f46" stroke-width="2"/>
                 </svg>
             </div>
         </div>
     </section>
 
-    <!-- Social Proof Strip -->
-    <section class="social-proof">
-        <div class="container">
-            <div class="proof-grid">
-                <div class="proof-item">
-                    <div class="proof-icon">🔬</div>
-                    <div class="proof-text">Built using ClinVar & PharmGKB databases</div>
-                </div>
-                <div class="proof-item">
-                    <div class="proof-icon">🧬</div>
-                    <div class="proof-text">Analyzes 600,000+ SNPs</div>
-                </div>
-                <div class="proof-item">
-                    <div class="proof-icon">📖</div>
-                    <div class="proof-text">Plain-English explanations</div>
-                </div>
-                <div class="proof-item">
-                    <div class="proof-icon">🔒</div>
-                    <div class="proof-text">Privacy-first design</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- What You'll Discover -->
-    <section>
+    <!-- SECTION 2: Free Preview Teaser -->
+    <section class="preview-section" id="preview">
         <div class="container">
             <div class="section-header">
-                <h2>What You'll Discover</h2>
-                <p>Turn raw genetic data into real-world wellbeing insights you can use now</p>
+                <h2>Here's a Glimpse of What Your DNA Can Reveal</h2>
             </div>
-            <div class="discovery-grid">
-                <div class="discovery-card">
-                    <div class="discovery-icon">☕</div>
-                    <h3>Caffeine & Sleep</h3>
-                    <p>How your body processes caffeine and how it affects recovery</p>
+            <div class="preview-grid">
+                <div class="preview-card">
+                    <div class="preview-card-gene">CYP1A2</div>
+                    <div class="preview-card-title">Caffeine Processing</div>
+                    <div class="preview-card-status">Intermediate</div>
+                    <p class="preview-card-body">Your genes suggest caffeine may affect your sleep if consumed later in the day.</p>
+                    <div class="preview-card-lock" onclick="scrollToUpload()">Unlock Full Explanation &rarr;</div>
                 </div>
-                <div class="discovery-card">
-                    <div class="discovery-icon">🥗</div>
-                    <h3>Nutrient Processing</h3>
-                    <p>Insights into methylation, choline, B12 and more</p>
+                <div class="preview-card">
+                    <div class="preview-card-gene">MTHFR</div>
+                    <div class="preview-card-title">Methylation Support</div>
+                    <div class="preview-card-status">Variant Detected</div>
+                    <p class="preview-card-body">Your body may process certain B vitamins differently.</p>
+                    <div class="preview-card-lock" onclick="scrollToUpload()">Unlock Full Analysis &rarr;</div>
                 </div>
-                <div class="discovery-card">
-                    <div class="discovery-icon">🧘</div>
-                    <h3>Stress & Dopamine</h3>
-                    <p>Understand your natural resilience and stimulation needs</p>
-                </div>
-                <div class="discovery-card">
-                    <div class="discovery-icon">💊</div>
-                    <h3>Medication Response</h3>
-                    <p>Pharmacogenomic flags you can share with your doctor</p>
-                </div>
-                <div class="discovery-card">
-                    <div class="discovery-icon">❤️</div>
-                    <h3>Cardio & Metabolism</h3>
-                    <p>Blood pressure and weight response tendencies</p>
-                </div>
-                <div class="discovery-card">
-                    <div class="discovery-icon">✨</div>
-                    <h3>Lifestyle Optimization</h3>
-                    <p>Simple experiments tailored to your genetics</p>
+                <div class="preview-card">
+                    <div class="preview-card-gene">COMT</div>
+                    <div class="preview-card-title">Stress Response</div>
+                    <div class="preview-card-status">Moderate Activity</div>
+                    <p class="preview-card-body">Your dopamine metabolism may influence stress resilience.</p>
+                    <div class="preview-card-lock" onclick="scrollToUpload()">Unlock Personalized Action Plan &rarr;</div>
                 </div>
             </div>
-            <div style="text-align:center; margin-top:48px;">
+            <div class="preview-unlock">
+                <p>Unlock your complete personalized report for $39.</p>
                 <button class="btn-primary btn-large" onclick="scrollToUpload()">
                     Analyze My DNA for $39
                 </button>
@@ -858,135 +1010,231 @@
         </div>
     </section>
 
-    <!-- Sample Insight Preview -->
-    <section class="sample-insight">
+    <!-- SECTION 3: What You'll Discover -->
+    <section class="discover-section">
         <div class="container">
             <div class="section-header">
-                <h2>See What You'll Get</h2>
-                <p>A preview of clarity—not confusing charts</p>
+                <h2>Turn Raw Genetic Data Into Clear Action Steps</h2>
             </div>
-            <div class="insight-card">
-                <div class="insight-header">
-                    <div class="insight-icon">☕</div>
-                    <div class="insight-title">CYP1A2 — Caffeine Metabolism</div>
+            <div class="discover-list">
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">How your body processes caffeine and alcohol</div>
                 </div>
-                <div class="insight-status">Intermediate</div>
-                <div class="insight-body">
-                    <h4>What It Means:</h4>
-                    <p>You metabolize caffeine at a moderate rate. Afternoon intake may affect sleep quality and reduce deep sleep cycles.</p>
-                    <div class="insight-action">
-                        <strong>Recommended Action:</strong>
-                        Limit caffeine after 2 PM to optimize sleep recovery.
-                    </div>
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">Which nutrients your genes suggest you may need more of</div>
+                </div>
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">Your natural stress and recovery tendencies</div>
+                </div>
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">How your body may respond to common medications</div>
+                </div>
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">Metabolism and weight response tendencies</div>
+                </div>
+                <div class="discover-item">
+                    <div class="discover-bullet">&#9656;</div>
+                    <div class="discover-text">Sleep and circadian rhythm patterns</div>
                 </div>
             </div>
+            <p class="section-small-text">Designed for wellness and medication response clarity — not medical diagnosis.</p>
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section>
+    <!-- SECTION 4: How It Works -->
+    <section class="how-section">
         <div class="container">
             <div class="section-header">
-                <h2>How It Works</h2>
-                <p>Three simple steps to understand your DNA</p>
+                <h2>Three Simple Steps</h2>
             </div>
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
-                    <h3>Download Raw DNA File</h3>
-                    <p>Get it from 23andMe or Ancestry in minutes. We'll show you exactly how.</p>
+                    <h3>Download Your Raw DNA File</h3>
+                    <p>Get it from 23andMe or Ancestry in minutes.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <h3>Upload Securely</h3>
-                    <p>Encrypted upload. Processed once. Deleted after report delivery.</p>
+                    <h3>Upload Securely to DNA Decoder</h3>
+                    <p>Encrypted processing. Your file is deleted after analysis.</p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
                     <h3>View Your Personalized Report</h3>
-                    <p>Clear, actionable insights delivered instantly—not genetic jargon.</p>
+                    <p>Clear, actionable insights delivered instantly.</p>
                 </div>
+            </div>
+            <p class="how-note">Encrypted processing. Your file is deleted after analysis.</p>
+            <div style="text-align:center; margin-top:32px;">
+                <button class="btn-primary btn-large" onclick="scrollToUpload()">
+                    Analyze My DNA for $39
+                </button>
             </div>
         </div>
     </section>
 
-    <!-- What's Included -->
-    <section style="background:#F9FAFB;">
+    <!-- SECTION 5: What's Included -->
+    <section class="included-section">
         <div class="container">
             <div class="section-header">
-                <h2>What's Included</h2>
-                <p>Everything you need to take action on your wellness</p>
+                <h2>Your DNA Decoder Report Includes</h2>
             </div>
             <div class="included-list">
                 <div class="included-item">
-                    <div class="included-check">✓</div>
+                    <div class="included-check">&#10004;</div>
                     <div class="included-text">
                         <strong>Executive summary in plain English</strong>
-                        <p>No jargon—just clear explanations</p>
                     </div>
                 </div>
                 <div class="included-item">
-                    <div class="included-check">✓</div>
+                    <div class="included-check">&#10004;</div>
                     <div class="included-text">
-                        <strong>5–10 top health insights</strong>
-                        <p>Your most actionable genetic findings</p>
+                        <strong>5 to 10 personalized top insights</strong>
                     </div>
                 </div>
                 <div class="included-item">
-                    <div class="included-check">✓</div>
+                    <div class="included-check">&#10004;</div>
                     <div class="included-text">
-                        <strong>Medication interaction overview</strong>
-                        <p>Pharmacogenomic quick card to share with your doctor</p>
+                        <strong>Medication response overview</strong>
                     </div>
                 </div>
                 <div class="included-item">
-                    <div class="included-check">✓</div>
+                    <div class="included-check">&#10004;</div>
                     <div class="included-text">
-                        <strong>Lifestyle action steps</strong>
-                        <p>Practical experiments tailored to your genetics</p>
+                        <strong>Nutrient and lifestyle optimization suggestions</strong>
                     </div>
                 </div>
                 <div class="included-item">
-                    <div class="included-check">✓</div>
+                    <div class="included-check">&#10004;</div>
                     <div class="included-text">
-                        <strong>Confidence & limitations explained</strong>
-                        <p>Honest context about what your data can and can't tell you</p>
+                        <strong>Clear confidence levels and limitations explained</strong>
+                    </div>
+                </div>
+                <div class="included-item">
+                    <div class="included-check">&#10004;</div>
+                    <div class="included-text">
+                        <strong>Printable digital report</strong>
                     </div>
                 </div>
             </div>
-            <div class="disclaimer">
-                <strong>Important:</strong> DNA Decoder focuses on wellness and medication insights.
-                It does not diagnose disease. This is educational, not diagnostic.
-            </div>
+            <p class="included-note">No subscription. No recurring fees.</p>
         </div>
     </section>
 
-    <!-- Pricing -->
-    <section class="pricing">
+    <!-- SECTION 6: Trust & Safety -->
+    <section class="trust-section">
         <div class="container">
             <div class="section-header">
-                <h2>Understand Your DNA Today</h2>
-                <p>One simple price. No subscription.</p>
+                <h2>Built for Clarity and Privacy</h2>
             </div>
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-icon">&#128300;</div>
+                    <p>Based on peer-reviewed genetic databases</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">&#128172;</div>
+                    <p>Plain language explanations</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">&#128274;</div>
+                    <p>Secure encrypted upload</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">&#128465;</div>
+                    <p>Deleted after processing</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">&#127891;</div>
+                    <p>Educational wellness insights only</p>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">&#9989;</div>
+                    <p>Privacy-first design</p>
+                </div>
+            </div>
+            <p class="trust-disclaimer">
+                DNA Decoder provides educational insights and does not diagnose disease or replace medical care.
+            </p>
+        </div>
+    </section>
+
+    <!-- SECTION 7: Pricing -->
+    <section class="pricing-section">
+        <div class="container">
             <div class="pricing-card">
                 <h3>DNA Decoder</h3>
+                <div class="pricing-badge">Launch Pricing</div>
                 <div class="price">$39</div>
-                <p class="price-detail">One-time payment • Instant digital delivery</p>
+                <p class="price-detail">One-Time Payment</p>
                 <div class="pricing-cta">
                     <button class="btn-primary btn-large" onclick="scrollToUpload()">
                         Analyze My DNA for $39
                     </button>
                 </div>
-                <p class="pricing-note">Launch price • No subscription required</p>
+                <p class="pricing-note">Instant access. No subscription.</p>
             </div>
         </div>
     </section>
 
-    <!-- Upload Section -->
-    <section class="upload" id="analyze">
+    <!-- SECTION 8: Deep Dive Tease -->
+    <section class="deepdive-section">
         <div class="container">
             <div class="section-header">
-                <h2>Upload & Analyze Now</h2>
+                <h2>Want Deeper Clinical Context?</h2>
+                <p>After purchase, you'll have the option to unlock:</p>
+            </div>
+            <div class="deepdive-card">
+                <h3>DNA Decoder Deep Dive Report</h3>
+                <div class="deepdive-price">$79</div>
+                <ul class="deepdive-list">
+                    <li>Variant-level detail</li>
+                    <li>Clinical context explanations</li>
+                    <li>Confirmatory testing guidance</li>
+                    <li>Designed for discussion with your healthcare provider</li>
+                </ul>
+                <p class="deepdive-note">Optional. Not required.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 9: FAQ -->
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Frequently Asked Questions</h2>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3>Is this a medical test?</h3>
+                    <p>No. This is an educational interpretation of existing DNA data.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How long does it take?</h3>
+                    <p>Reports are usually delivered instantly after upload.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is my data stored?</h3>
+                    <p>No. Your raw DNA file is encrypted, processed, and deleted.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Which DNA tests work?</h3>
+                    <p>23andMe and AncestryDNA raw data files are supported.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upload Section (functional) -->
+    <section class="upload-section" id="analyze">
+        <div class="container">
+            <div class="section-header">
+                <h2>Upload &amp; Analyze Now</h2>
                 <p>Your report is just a few clicks away</p>
             </div>
             <div class="upload-card">
@@ -998,7 +1246,7 @@
                     <input id="genome_file" name="genome_file" type="file" accept=".txt,.csv" required>
 
                     <button class="btn-primary btn-large" type="submit" style="width:100%;">
-                        Analyze My DNA
+                        Analyze My DNA for $39
                     </button>
                 </form>
                 <div id="status"></div>
@@ -1020,44 +1268,23 @@
                         medication response guidance, and actionable lifestyle recommendations.
                     </p>
                     <button id="unlockBtn" class="btn-primary btn-large">
-                        Unlock Core Report — $39
+                        Analyze My DNA for $39
                     </button>
-                    <p style="margin-top:16px; font-size:0.875rem; color:#6B7280;">
-                        Secure checkout • Instant download
+                    <p style="margin-top:16px; font-size:0.875rem; color:var(--text-muted);">
+                        Secure checkout &bull; Instant download
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ -->
-    <section>
+    <!-- SECTION 10: Final CTA -->
+    <section class="final-cta">
         <div class="container">
-            <div class="section-header">
-                <h2>Frequently Asked Questions</h2>
-            </div>
-            <div class="faq-list">
-                <div class="faq-item">
-                    <h3>Is this a medical diagnosis?</h3>
-                    <p>No. This is educational and wellness-oriented. If you have health concerns, share your report with a healthcare provider.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Do I need a subscription?</h3>
-                    <p>No. This is a one-time purchase with instant access to your report.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Where do I get my raw DNA file?</h3>
-                    <p>We provide direct links to 23andMe and Ancestry instructions during the upload process. It takes about 2 minutes to download your file.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>How long does it take?</h3>
-                    <p>Most reports are generated instantly after upload. Complex analyses may take up to 1 minute.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Is my data stored?</h3>
-                    <p>No. Your file is encrypted during upload, processed once, and deleted immediately after your report is generated. We never store your raw genetic data.</p>
-                </div>
-            </div>
+            <h2>Your DNA Already Holds the Information.</h2>
+            <button class="btn-primary btn-large" onclick="scrollToUpload()">
+                Analyze My DNA for $39
+            </button>
         </div>
     </section>
 
@@ -1071,9 +1298,16 @@
                 </div>
                 <div class="footer-logo-sub">by Helix Health</div>
             </div>
-            <p>© 2026 Helix Health. For educational purposes only. Not medical advice.</p>
+            <p>&copy; 2026 Helix Health. For educational purposes only. Not medical advice.</p>
         </div>
     </footer>
+
+    <!-- Mobile Sticky CTA -->
+    <div class="mobile-sticky-cta">
+        <button class="btn-primary btn-large" onclick="scrollToUpload()" style="width:100%;">
+            Analyze My DNA for $39
+        </button>
+    </div>
 
     <script>
         // Scroll helper
@@ -1097,7 +1331,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             statusEl.textContent = 'Analyzing your DNA... this takes about 30 seconds.';
-            statusEl.style.color = '#6B7280';
+            statusEl.style.color = 'var(--text-muted)';
             resultsPanel.style.display = 'none';
 
             const formData = new FormData(form);
@@ -1130,7 +1364,7 @@
             if (s.snps_analyzed) parts.push(`${s.snps_analyzed.toLocaleString()} SNPs analyzed`);
             if (s.high_impact) parts.push(`${s.high_impact} high-impact findings`);
             if (s.drug_interactions) parts.push(`${s.drug_interactions} medication interactions`);
-            statsBar.textContent = parts.join(' • ');
+            statsBar.textContent = parts.join(' \u2022 ');
 
             teaserCards.innerHTML = '';
             (data.teaser || []).forEach(card => {
@@ -1142,7 +1376,7 @@
                         <div class="teaser-title">${card.title}</div>
                     </div>
                     <div class="teaser-body">${card.body}</div>
-                    <div class="teaser-hook">🔒 ${card.hook}</div>
+                    <div class="teaser-hook">\uD83D\uDD12 ${card.hook}</div>
                 `;
                 teaserCards.appendChild(el);
             });
@@ -1170,7 +1404,7 @@
                 const { checkout_url } = await resp.json();
                 window.location.href = checkout_url;
             } catch (err) {
-                unlockBtn.textContent = 'Unlock Core Report — $39';
+                unlockBtn.textContent = 'Analyze My DNA for $39';
                 unlockBtn.disabled = false;
                 statusEl.textContent = `Checkout error: ${err.message}`;
                 statusEl.style.color = '#DC2626';
@@ -1181,7 +1415,6 @@
         (async function handleCoreSuccess() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('success') === 'core') {
-                // Show success message (the thank-you-core.html handles the download)
                 document.getElementById('analyze').scrollIntoView({ behavior: 'smooth' });
             }
         })();

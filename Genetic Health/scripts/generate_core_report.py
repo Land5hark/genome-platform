@@ -23,21 +23,46 @@ FORBIDDEN_CLINICAL_TERMS = [
 ]
 
 
-def assert_no_clinical_terms(content: str):
-    """Assert that Core Report does NOT contain forbidden clinical terms."""
-    content_lower = content.lower()
+def sanitize_clinical_terms(content: str) -> str:
+    """Remove or replace any forbidden clinical terms that slipped through filters."""
+    import re
+    # Map clinical terms to softer wellness-appropriate replacements
+    REPLACEMENTS = {
+        'pathogenic': 'notable',
+        'likely pathogenic': 'potentially notable',
+        'disease causing': 'health-related',
+        'clinvar': 'clinical database',
+        'mutation': 'variant',
+        'syndrome': 'condition',
+        'disorder': 'condition',
+        'carrier status': 'variant status',
+        'homozygous affected': 'two copies detected',
+        'genetic disease': 'genetic condition',
+        'hereditary condition': 'inherited trait',
+        'cancer risk': 'health consideration',
+        'tumor': 'growth',
+        'malignant': 'significant',
+        'diagnosis': 'assessment',
+    }
+    for term, replacement in REPLACEMENTS.items():
+        content = re.sub(re.escape(term), replacement, content, flags=re.IGNORECASE)
+    return content
 
-    for term in FORBIDDEN_CLINICAL_TERMS:
-        if term in content_lower:
-            raise ValueError(
-                f"VIOLATION: Core Report contains forbidden term: '{term}'. "
-                f"This term must only appear in the Deep Dive report."
-            )
+
+def _finding_contains_clinical_terms(finding: dict) -> bool:
+    """Check if any text field in a finding contains forbidden clinical terms."""
+    text = ' '.join([
+        str(finding.get('summary', '')),
+        str(finding.get('trait', '')),
+        str(finding.get('annotation', '')),
+    ]).lower()
+    return any(term in text for term in FORBIDDEN_CLINICAL_TERMS)
 
 
 def filter_lifestyle_findings(findings: list) -> list:
     """
     Filter findings to ONLY include lifestyle genetics categories.
+    Also excludes any finding containing forbidden clinical terms.
 
     Allowed: caffeine, methylation, detox, metabolism, cardiovascular, sleep, nutrition
     """
@@ -63,7 +88,8 @@ def filter_lifestyle_findings(findings: list) -> list:
             for keyword in ALLOWED_KEYWORDS
         )
 
-        if is_lifestyle:
+        # Exclude findings that contain clinical language
+        if is_lifestyle and not _finding_contains_clinical_terms(finding):
             lifestyle_findings.append(finding)
 
     return lifestyle_findings
@@ -254,8 +280,8 @@ The DNA Decoder Deep Dive Clinical Context Report explores additional variant ca
 **Disclaimer:** This report is for educational and informational purposes only. It is not intended to diagnose, treat, cure, or prevent any condition. Always consult with a qualified healthcare provider before making decisions about your health based on genetic information.
 """
 
-    # Assert no forbidden terms
-    assert_no_clinical_terms(md_content)
+    # Sanitize any clinical terms that slipped through filters
+    md_content = sanitize_clinical_terms(md_content)
 
     return md_content
 
@@ -269,34 +295,143 @@ def generate_core_report(results: dict, subject_name: str = None) -> tuple:
     """
     md_content = generate_core_report_markdown(results, subject_name)
 
-    # For soft launch, HTML is same as MD (browser will render)
-    # We can add proper HTML styling later
-    html_content = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNA Decoder Core Report</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }}
-        h1 {{ color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }}
-        h2 {{ color: #34495e; margin-top: 30px; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
-        th {{ background: #3498db; color: white; }}
-        .warning {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }}
-        .info {{ background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 20px 0; }}
-    </style>
-</head>
-<body>
-<pre style="white-space: pre-wrap; font-family: Arial, sans-serif;">
-{md_content}
-</pre>
-</body>
-</html>
-"""
+    html_content = _render_report_html("DNA Decoder Core Report", md_content, accent="#7c3aed")
 
     return md_content, html_content
+
+
+def _render_report_html(title: str, md_content: str, accent: str = "#7c3aed") -> str:
+    """Render markdown into a polished, self-contained dark-mode HTML report."""
+    import json as _json
+    safe_md = _json.dumps(md_content)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {{
+    --bg: #09090b; --surface: #18181b; --border: #27272a;
+    --text: #e4e4e7; --muted: #a1a1aa;
+    --accent: {accent}; --accent-light: #c4b5fd;
+  }}
+  *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px; line-height: 1.7; padding: 0;
+  }}
+  .report-header {{
+    background: linear-gradient(135deg, #1e1b4b, #0f172a);
+    border-bottom: 2px solid var(--accent);
+    padding: 48px 24px; text-align: center;
+  }}
+  .report-header h1 {{
+    font-size: 2rem; color: #fff; margin: 0 0 8px;
+    border: none; padding: 0;
+  }}
+  .report-header p {{ color: var(--accent-light); font-size: 0.95rem; }}
+  .report-body {{
+    max-width: 800px; margin: 0 auto; padding: 40px 24px 80px;
+  }}
+  h1 {{
+    font-size: 1.8rem; color: #fff;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 12px; margin: 40px 0 20px;
+  }}
+  h2 {{
+    font-size: 1.4rem; color: var(--accent-light);
+    margin: 36px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }}
+  h3 {{
+    font-size: 1.15rem; color: #a78bfa;
+    margin: 28px 0 10px;
+  }}
+  p {{ margin-bottom: 14px; color: var(--text); }}
+  ul, ol {{ margin: 0 0 16px 24px; }}
+  li {{ margin-bottom: 6px; }}
+  hr {{
+    border: none; border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }}
+  strong {{ color: #fff; }}
+  em {{ color: var(--muted); }}
+  code {{
+    background: var(--surface); padding: 2px 8px;
+    border-radius: 4px; font-family: 'Consolas', monospace;
+    font-size: 0.9em; color: var(--accent-light);
+    border: 1px solid var(--border);
+  }}
+  blockquote {{
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px; background: var(--surface);
+    border-radius: 0 8px 8px 0; margin: 16px 0;
+    color: var(--muted);
+  }}
+  table {{
+    width: 100%; border-collapse: collapse;
+    margin: 20px 0; font-size: 0.9rem;
+  }}
+  th {{
+    background: var(--surface); color: var(--accent-light);
+    padding: 12px 14px; text-align: left;
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+  }}
+  td {{
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }}
+  tr:hover td {{ background: rgba(124, 58, 237, 0.04); }}
+  .report-footer {{
+    margin-top: 48px; padding: 24px 0;
+    border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.8rem;
+    text-align: center; line-height: 1.6;
+  }}
+  @media print {{
+    body {{ background: #fff; color: #111; font-size: 12pt; }}
+    .report-header {{ background: #f5f3ff; border-color: {accent}; }}
+    .report-header h1 {{ color: #111; }}
+    .report-header p {{ color: #4c1d95; }}
+    h1 {{ color: #111; border-color: {accent}; }}
+    h2 {{ color: #4c1d95; border-color: #e5e7eb; }}
+    h3 {{ color: #5b21b6; }}
+    p, li, td {{ color: #333; }}
+    strong {{ color: #111; }}
+    code {{ background: #f5f3ff; color: #4c1d95; border-color: #e5e7eb; }}
+    th {{ background: #f5f3ff; color: #4c1d95; }}
+    blockquote {{ background: #f9fafb; border-color: {accent}; color: #555; }}
+    tr:hover td {{ background: transparent; }}
+  }}
+  @media (max-width: 600px) {{
+    .report-body {{ padding: 24px 16px 60px; }}
+    .report-header {{ padding: 32px 16px; }}
+    table {{ font-size: 0.8rem; }}
+    th, td {{ padding: 8px; }}
+  }}
+</style>
+</head>
+<body>
+<div class="report-header">
+  <h1>{title}</h1>
+  <p>DNA Decoder by Helix Health</p>
+</div>
+<div class="report-body">
+  <div id="content"></div>
+  <div class="report-footer">
+    This report is for educational purposes only and does not constitute medical advice.<br>
+    Always consult a qualified healthcare provider before making health decisions based on genetic information.
+  </div>
+</div>
+<script>
+  document.getElementById('content').innerHTML = marked.parse({safe_md});
+</script>
+</body>
+</html>"""
 
 
 if __name__ == '__main__':

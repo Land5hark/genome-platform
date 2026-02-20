@@ -320,32 +320,8 @@ def generate_deep_dive_report(results: dict, disease_findings: dict,
     """
     md_content = generate_deep_dive_report_markdown(results, disease_findings, subject_name)
 
-    # Simple HTML wrapper for soft launch
-    html_content = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNA Decoder Deep Dive Report</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; line-height: 1.6; }}
-        h1 {{ color: #2c3e50; border-bottom: 3px solid #6c757d; padding-bottom: 10px; }}
-        h2 {{ color: #34495e; margin-top: 30px; border-left: 4px solid #6c757d; padding-left: 15px; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
-        th {{ background: #6c757d; color: white; }}
-        .critical {{ background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }}
-        .warning {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }}
-        .info {{ background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 15px; margin: 20px 0; }}
-    </style>
-</head>
-<body>
-<pre style="white-space: pre-wrap; font-family: Arial, sans-serif;">
-{md_content}
-</pre>
-</body>
-</html>
-"""
+    from generate_core_report import _render_report_html
+    html_content = _render_report_html("DNA Decoder Deep Dive Report", md_content, accent="#4f46e5")
 
     return md_content, html_content
 
