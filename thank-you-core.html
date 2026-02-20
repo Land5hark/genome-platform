@@ -22,8 +22,6 @@
     display:flex; align-items:center; gap:10px;
     margin-bottom:48px; text-decoration:none; color:var(--text);
   }
-  .logo svg { width:28px; height:28px; color:var(--accent); }
-  .logo span { font-weight:700; font-size:1.1rem; letter-spacing:-0.02em; }
 
   .card {
     background:var(--surface); border:1px solid var(--border);
@@ -106,13 +104,11 @@
 <body>
 
 <a class="logo" href="/">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-       stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 15c6.667-6 13.333 0 20-6"/>
-    <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/>
-    <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/>
-  </svg>
-  <span>DNA Decoder</span>
+  <img src="logo.svg" alt="DNA Decoder" style="width:28px; height:28px;">
+  <div>
+    <div style="font-weight:700; font-size:1.1rem; letter-spacing:-0.02em;">DNA Decoder</div>
+    <div style="font-size:0.6rem; color:#71717a; margin-top:-2px;">by Helix Health</div>
+  </div>
 </a>
 
 <div class="card">
