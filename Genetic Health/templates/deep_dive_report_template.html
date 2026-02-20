@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Decoder: Deep Dive Clinical Context Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px solid #6c757d;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin: 40px 0 20px 0;
+            border-left: 4px solid #6c757d;
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: #495057;
+            font-size: 1.4em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #495057;
+            font-size: 1.1em;
+            margin: 20px 0 10px 0;
+        }
+
+        .critical-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .critical-box h4 {
+            color: #721c24;
+            margin-top: 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .summary-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .dashboard-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .dashboard-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #6c757d;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #e9ecef;
+        }
+
+        .variant-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .variant-card.moderate {
+            border-left-color: #ffc107;
+        }
+
+        .variant-card.low {
+            border-left-color: #17a2b8;
+        }
+
+        .variant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .variant-header h4 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .confidence-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .confidence-high {
+            background: #dc3545;
+            color: white;
+        }
+
+        .confidence-moderate {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .confidence-low {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .variant-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .interpretation {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .action-checklist {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .action-checklist h4 {
+            color: #004085;
+            margin-top: 0;
+        }
+
+        .action-checklist ul {
+            margin: 10px 0 0 20px;
+        }
+
+        .action-checklist li {
+            margin: 8px 0;
+        }
+
+        .do-dont-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .do-card {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .do-card h4 {
+            color: #155724;
+            margin-top: 0;
+        }
+
+        .dont-card {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .dont-card h4 {
+            color: #721c24;
+            margin-top: 0;
+        }
+
+        .resource-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .resource-section h3 {
+            margin-top: 0;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .resource-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .resource-card h4 {
+            color: #495057;
+            margin-top: 0;
+        }
+
+        .resource-card ul {
+            margin: 10px 0 0 20px;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .disclaimer {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #495057;
+            margin-top: 20px;
+            border: 2px solid #6c757d;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .dashboard-card {
+                break-inside: avoid;
+            }
+
+            .variant-card {
+                break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .summary-dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .do-dont-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .variant-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DNA Decoder: Deep Dive</h1>
+            <p class="subtitle">Clinical Context Report</p>
+        </header>
+
+        <section id="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>This Deep Dive report provides a comprehensive view of your genetic data, including variants flagged in clinical databases like ClinVar and PharmGKB. This is an informational resource to help you have more informed conversations with your healthcare providers—<strong>it is not a diagnosis.</strong></p>
+
+            <div class="info-box">
+                <h4>What's Inside:</h4>
+                <ul>
+                    <li>{total_variants_scanned} variants analyzed across clinical databases</li>
+                    <li>{pathogenic_count} variants flagged as pathogenic or likely pathogenic</li>
+                    <li>{pharmgkb_count} pharmacogenomic findings</li>
+                    <li>Guidance on confirmatory testing and next steps</li>
+                    <li>Family planning considerations</li>
+                </ul>
+            </div>
+
+            <div class="critical-box">
+                <h4>Critical Context:</h4>
+                <ul>
+                    <li><strong>This is not diagnostic.</strong> Clinical confirmation is required for any flagged variant.</li>
+                    <li><strong>Raw data has limitations.</strong> Direct-to-consumer tests miss rare variants and provide lower accuracy than clinical sequencing.</li>
+                    <li><strong>Flagged ≠ affected.</strong> Many flagged variants require two copies (homozygous) to cause disease, and you may have only one (heterozygous).</li>
+                    <li><strong>Uncertainty is normal.</strong> Genetic research is evolving—today's "uncertain significance" may be reclassified tomorrow.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="understanding">
+            <h2>Understanding This Report</h2>
+
+            <h3>What Do "Pathogenic" and "Likely Pathogenic" Mean?</h3>
+            <p>Clinical databases like ClinVar classify variants based on their evidence for causing disease:</p>
+
+            <table>
+                <tr>
+                    <th>Classification</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td><strong>Pathogenic</strong></td>
+                    <td>Strong evidence that this variant can cause disease</td>
+                </tr>
+                <tr>
+                    <td><strong>Likely Pathogenic</strong></td>
+                    <td>Moderate-to-strong evidence suggesting disease association</td>
+                </tr>
+                <tr>
+                    <td><strong>Uncertain Significance</strong></td>
+                    <td>Not enough evidence to classify</td>
+                </tr>
+                <tr>
+                    <td><strong>Likely Benign / Benign</strong></td>
+                    <td>Evidence suggests no disease risk</td>
+                </tr>
+            </table>
+
+            <div class="warning-box">
+                <h4>Important:</h4>
+                <p>Being flagged as "pathogenic" does NOT mean you have the disease. It means:</p>
+                <ol>
+                    <li>This variant has been associated with a condition in published research</li>
+                    <li>You may carry one or two copies of this variant</li>
+                    <li>Clinical-grade confirmation testing is needed</li>
+                    <li>Additional factors (family history, symptoms, other genes) influence actual risk</li>
+                </ol>
+            </div>
+
+            <h3>Why Raw Data Requires Confirmation</h3>
+            <p>Your raw genetic data from consumer testing:</p>
+            <ul>
+                <li>Uses microarray chips that check ~600,000 common variants</li>
+                <li>May have false positives or false negatives</li>
+                <li>Doesn't detect rare mutations, deletions, or duplications</li>
+                <li>Provides probabilities, not certainties</li>
+            </ul>
+
+            <p><strong>Clinical-grade confirmatory testing</strong> uses:</p>
+            <ul>
+                <li>Targeted sequencing or full exome/genome sequencing</li>
+                <li>Higher accuracy with independent verification</li>
+                <li>Medical-grade quality control</li>
+                <li>Results you can use for healthcare decisions</li>
+            </ul>
+
+            <div class="critical-box">
+                <strong>Never make medical decisions based on raw data alone.</strong>
+            </div>
+        </section>
+
+        <section id="dashboard">
+            <h2>Summary Dashboard</h2>
+
+            <div class="summary-dashboard">
+                <div class="dashboard-card">
+                    <div class="number">{total_variants_scanned}</div>
+                    <div class="label">Total Variants Scanned</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="number">{clinvar_flagged_count}</div>
+                    <div class="label">ClinVar Variants Flagged</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="number">{pathogenic_count}</div>
+                    <div class="label">Pathogenic/Likely Pathogenic</div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="number">{pharmgkb_count}</div>
+                    <div class="label">PharmGKB Drug Interactions</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="high-priority">
+            <h2>High-Priority Variants</h2>
+            <p>These variants have been flagged in clinical databases. Each warrants discussion with a genetic counselor or physician.</p>
+
+            {high_priority_variants_html}
+
+            <div class="info-box">
+                <h4>Reading the Variant Cards:</h4>
+                <ul>
+                    <li><strong>Gene:</strong> The gene where the variant is located</li>
+                    <li><strong>rsID:</strong> Reference SNP ID for database lookup</li>
+                    <li><strong>Position:</strong> Chromosome and location (hg38 reference)</li>
+                    <li><strong>Your Genotype:</strong> What you have (e.g., AG means one A, one G)</li>
+                    <li><strong>Evidence Source:</strong> ClinVar, PharmGKB, OMIM, etc.</li>
+                    <li><strong>Confidence:</strong> Our assessment of evidence strength</li>
+                    <li><strong>Interpretation:</strong> Plain-English summary</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="detailed-findings">
+            <h2>Detailed Findings</h2>
+            {detailed_findings_sections}
+        </section>
+
+        <section id="pharmacogenomics">
+            <h2>Pharmacogenomics: Full Reference Table</h2>
+            <p>This table shows all medication-gene interactions found in your data, including high and moderate confidence findings.</p>
+
+            <div class="warning-box">
+                <strong>Important:</strong> This is informational only. Never adjust medications without medical supervision.
+            </div>
+
+            {full_pharmgkb_table}
+
+            <h3>Evidence Levels Explained</h3>
+            <table>
+                <tr>
+                    <th>Level</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td><strong>Level 1A</strong></td>
+                    <td>FDA-recognized, guideline-recommended</td>
+                </tr>
+                <tr>
+                    <td><strong>Level 1B</strong></td>
+                    <td>Strong clinical evidence, medical consensus</td>
+                </tr>
+                <tr>
+                    <td><strong>Level 2A</strong></td>
+                    <td>Moderate evidence, replicated studies</td>
+                </tr>
+                <tr>
+                    <td><strong>Level 2B</strong></td>
+                    <td>Preliminary evidence from limited studies</td>
+                </tr>
+                <tr>
+                    <td><strong>Level 3</strong></td>
+                    <td>In vitro or theoretical associations</td>
+                </tr>
+            </table>
+
+            <div class="action-checklist">
+                <h4>For medications you're currently taking:</h4>
+                <ul>
+                    <li>Bring this table to your prescriber or pharmacist</li>
+                    <li>Ask if dose adjustments, monitoring, or alternative medications are recommended</li>
+                    <li>Request formal pharmacogenomic testing if appropriate</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="confirmatory-testing">
+            <h2>Recommended Confirmatory Testing & Follow-Up</h2>
+
+            <div class="action-checklist">
+                <h4>If High-Priority Variants Were Flagged</h4>
+                <ol>
+                    <li><strong>Request a Genetic Counseling Consultation</strong>
+                        <ul>
+                            <li>Genetic counselors interpret results in the context of your health history</li>
+                            <li>They can order appropriate confirmatory testing</li>
+                            <li>Insurance often covers counseling for flagged pathogenic variants</li>
+                        </ul>
+                    </li>
+                    <li><strong>Clinical Confirmation Options</strong>
+                        <ul>
+                            <li><strong>Targeted Gene Panel:</strong> Test specific genes flagged in this report</li>
+                            <li><strong>Exome Sequencing:</strong> Analyze all protein-coding genes (~20,000 genes)</li>
+                            <li><strong>Genome Sequencing:</strong> Full DNA analysis including non-coding regions</li>
+                        </ul>
+                    </li>
+                    <li><strong>Questions to Ask Your Doctor</strong>
+                        <ul>
+                            <li>"Should I have clinical-grade testing for this variant?"</li>
+                            <li>"What symptoms or health history would make this more concerning?"</li>
+                            <li>"Are there screening tests I should have based on this finding?"</li>
+                            <li>"Should my family members be informed or tested?"</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="action-checklist">
+                <h4>If PharmGKB Findings Were Flagged</h4>
+                <ol>
+                    <li>Bring the Pharmacogenomics table to your prescriber</li>
+                    <li>Request a Medication Review if you're taking any flagged drugs</li>
+                    <li>Ask about formal PGx testing (clinical pharmacogenomic panel)</li>
+                    <li>Keep a copy for future prescriptions and emergency situations</li>
+                </ol>
+            </div>
+
+            <div class="success-box">
+                <h4>If No High-Priority Variants Were Found</h4>
+                <ul>
+                    <li>This is reassuring but not comprehensive—raw data doesn't detect all variants</li>
+                    <li>Continue recommended health screenings based on age, family history, and risk factors</li>
+                    <li>Genetics is one piece of your health picture</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="family-planning">
+            <h2>Family Planning & Relatives</h2>
+
+            <h3>Should You Share This Information?</h3>
+
+            <div class="info-box">
+                <h4>Consider sharing if:</h4>
+                <ul>
+                    <li>You have children or plan to have children</li>
+                    <li>Close relatives (siblings, parents, children) have relevant health conditions</li>
+                    <li>A flagged variant is associated with hereditary cancer or cardiac conditions</li>
+                    <li>A pharmacogenomic finding could affect a relative's current medications</li>
+                </ul>
+            </div>
+
+            <h4>How to share responsibly:</h4>
+            <ul>
+                <li>Start with: "I did a genetic analysis and found a flagged variant—it may or may not be significant."</li>
+                <li>Recommend they speak with their doctor or genetic counselor</li>
+                <li>Provide the gene name and condition, not raw data files</li>
+                <li>Respect their choice—some people prefer not to know</li>
+            </ul>
+
+            <h3>Carrier Screening</h3>
+            <p>If you're planning to have children and a flagged variant is related to a recessive condition:</p>
+            <ul>
+                <li><strong>Recessive conditions</strong> require two copies of a variant (one from each parent) to cause disease</li>
+                <li>If you carry one copy, your partner can be tested</li>
+                <li>Genetic counseling can assess risk and discuss options</li>
+            </ul>
+        </section>
+
+        <section id="uncertainty">
+            <h2>Uncertainty & Evolving Science</h2>
+
+            <h3>Variants of Uncertain Significance (VUS)</h3>
+            <p>{vus_count} variants in your data are classified as "uncertain significance." This means:</p>
+            <ul>
+                <li>Not enough evidence to call them pathogenic or benign</li>
+                <li>Research is ongoing</li>
+                <li>They may be reclassified in the future</li>
+            </ul>
+
+            <div class="info-box">
+                <h4>What to do with VUS:</h4>
+                <ul>
+                    <li>Generally, no action is needed</li>
+                    <li>If symptoms or family history align with the associated gene, discuss with a genetic counselor</li>
+                    <li>Check for updates annually—ClinVar classifications change as research progresses</li>
+                </ul>
+            </div>
+
+            <h3>Confidence Levels in This Report</h3>
+            <p>We assign confidence based on:</p>
+            <ul>
+                <li>Number of independent studies</li>
+                <li>Consistency of results across populations</li>
+                <li>Clinical guideline recognition</li>
+                <li>Quality of the evidence source</li>
+            </ul>
+
+            <table>
+                <tr>
+                    <th>Confidence</th>
+                    <th>Criteria</th>
+                </tr>
+                <tr>
+                    <td><span class="confidence-badge confidence-high">High</span></td>
+                    <td>Multiple replicated studies, guideline support</td>
+                </tr>
+                <tr>
+                    <td><span class="confidence-badge confidence-moderate">Moderate</span></td>
+                    <td>Some replication, emerging consensus</td>
+                </tr>
+                <tr>
+                    <td><span class="confidence-badge confidence-low">Low</span></td>
+                    <td>Preliminary or conflicting evidence</td>
+                </tr>
+            </table>
+
+            <p><strong>Even "high confidence" findings require clinical confirmation.</strong></p>
+        </section>
+
+        <section id="limitations">
+            <h2>What This Report Doesn't Cover</h2>
+            <ul>
+                <li><strong>Rare variants:</strong> Consumer chips don't detect most rare mutations</li>
+                <li><strong>Structural variants:</strong> Large deletions, duplications, inversions</li>
+                <li><strong>Epigenetics:</strong> How genes are turned on or off</li>
+                <li><strong>Gene-gene interactions:</strong> Complex multi-gene conditions</li>
+                <li><strong>Somatic mutations:</strong> Cancer-specific mutations (requires tumor sequencing)</li>
+            </ul>
+
+            <p>If you have a family history of genetic disease and this report doesn't explain it, discuss <strong>clinical sequencing</strong> with a genetic counselor.</p>
+        </section>
+
+        <section id="how-to-use">
+            <h2>How to Use This Report</h2>
+
+            <div class="do-dont-grid">
+                <div class="do-card">
+                    <h4>✅ Do:</h4>
+                    <ul>
+                        <li>Share relevant sections with your healthcare providers</li>
+                        <li>Request genetic counseling for flagged variants</li>
+                        <li>Ask about clinical confirmation testing</li>
+                        <li>Use pharmacogenomics findings when discussing medications</li>
+                        <li>Keep this report updated if you retest in the future</li>
+                    </ul>
+                </div>
+
+                <div class="dont-card">
+                    <h4>❌ Don't:</h4>
+                    <ul>
+                        <li>Make medical decisions based solely on this report</li>
+                        <li>Assume flagged variants mean you have a disease</li>
+                        <li>Start or stop medications without supervision</li>
+                        <li>Panic—most flagged variants have low penetrance</li>
+                        <li>Share raw genetic data publicly (privacy risk)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="resource-section">
+            <h2>📚 Appendix B: Resources</h2>
+
+            <div class="resource-grid">
+                <div class="resource-card">
+                    <h4>Genetic Counseling</h4>
+                    <ul>
+                        <li><a href="https://findageneticcounselor.org" target="_blank">National Society of Genetic Counselors</a></li>
+                        <li>Many insurers cover virtual genetic counseling</li>
+                    </ul>
+                </div>
+
+                <div class="resource-card">
+                    <h4>Database Lookups</h4>
+                    <ul>
+                        <li><a href="https://ncbi.nlm.nih.gov/clinvar" target="_blank">ClinVar</a></li>
+                        <li><a href="https://pharmgkb.org" target="_blank">PharmGKB</a></li>
+                        <li><a href="https://omim.org" target="_blank">OMIM</a></li>
+                    </ul>
+                </div>
+
+                <div class="resource-card">
+                    <h4>Confirmatory Testing Labs</h4>
+                    <ul>
+                        <li>Invitae, GeneDx, Ambry Genetics</li>
+                        <li>Ask your doctor for a referral</li>
+                    </ul>
+                </div>
+
+                <div class="resource-card">
+                    <h4>Patient Communities</h4>
+                    <ul>
+                        <li><a href="https://rarediseases.org" target="_blank">NORD</a></li>
+                        <li><a href="https://geneticalliance.org" target="_blank">Genetic Alliance</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><em>Generated on {report_date}</em></p>
+            <p><strong>DNA Decoder Deep Dive by Genome Platform</strong></p>
+
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This report is for educational and informational purposes only. It is not a clinical diagnostic test. Variants flagged in this report should be confirmed with clinical-grade testing before any medical decisions are made. This report does not replace consultation with qualified healthcare providers, including genetic counselors and physicians. Always seek professional medical advice before acting on genetic information.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

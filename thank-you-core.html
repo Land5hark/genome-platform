@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your Core Report Is Ready — DNA Decoder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#09090b; --surface:#18181b; --border:#27272a;
+    --text:#e4e4e7; --muted:#71717a;
+    --accent:#7c3aed; --accent2:#4f46e5;
+    --green:#4ade80; --green-dark:#16a34a;
+  }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; padding:40px 20px 80px;
+  }
+  .logo {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:48px; text-decoration:none; color:var(--text);
+  }
+  .logo svg { width:28px; height:28px; color:var(--accent); }
+  .logo span { font-weight:700; font-size:1.1rem; letter-spacing:-0.02em; }
+
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:48px 40px;
+    max-width:620px; width:100%; text-align:center;
+  }
+
+  .done-badge {
+    width:80px; height:80px; margin:0 auto 24px;
+    background:linear-gradient(135deg,#052e16,#14532d);
+    border:2px solid var(--green-dark); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:2rem;
+  }
+
+  .status-title {
+    font-size:1.6rem; font-weight:800; margin-bottom:12px;
+    background:linear-gradient(135deg,#c4b5fd,#818cf8);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .status-sub {
+    color:var(--muted); font-size:0.95rem; line-height:1.6;
+    max-width:440px; margin:0 auto 32px;
+  }
+
+  .download-btn {
+    background:var(--accent); color:#fff; border:none;
+    border-radius:10px; padding:14px 32px; font-size:1rem;
+    font-weight:600; cursor:pointer; margin:20px 0;
+    display:inline-block; text-decoration:none;
+  }
+  .download-btn:hover { opacity:0.9; }
+
+  .upsell-section {
+    margin-top:48px; max-width:620px; width:100%;
+  }
+  .upsell-card {
+    background:linear-gradient(135deg,#1e1b4b,#0f172a);
+    border:1px solid #3730a3; border-radius:20px; padding:40px;
+  }
+  .upsell-badge {
+    display:inline-block;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; font-size:0.72rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.1em;
+    padding:4px 12px; border-radius:100px; margin-bottom:16px;
+  }
+  .upsell-card h2 { font-size:1.5rem; margin-bottom:16px; color:#fff; }
+  .upsell-card > p {
+    color:#a5b4fc; font-size:0.95rem; line-height:1.7;
+    margin-bottom:24px;
+  }
+  .benefits { text-align:left; margin:24px 0; }
+  .benefit {
+    display:flex; align-items:start; gap:12px;
+    padding:12px; margin:8px 0;
+  }
+  .benefit-icon { font-size:1.3rem; flex-shrink:0; }
+  .benefit-text strong { display:block; color:#fff; margin-bottom:4px; }
+  .benefit-text span { color:#a5b4fc; font-size:0.88rem; }
+
+  .upgrade-btn {
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; border:none; border-radius:10px;
+    padding:16px 40px; font-size:1.05rem; font-weight:600;
+    cursor:pointer; width:100%; margin-top:20px;
+  }
+  .upgrade-btn:hover { opacity:0.9; }
+
+  .skip-link {
+    display:block; margin-top:16px; color:var(--muted);
+    font-size:0.85rem; text-decoration:none;
+  }
+  .skip-link:hover { color:var(--text); }
+
+  @media (max-width:520px) {
+    .card, .upsell-card { padding:28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="logo" href="/">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 15c6.667-6 13.333 0 20-6"/>
+    <path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/>
+    <path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/>
+  </svg>
+  <span>DNA Decoder</span>
+</a>
+
+<div class="card">
+  <div class="done-badge">🎉</div>
+
+  <div class="status-title">Your Core Report Is Ready!</div>
+  <p class="status-sub">
+    Your personalized lifestyle genetics and pharmacogenomics quick card has been generated.
+    Click below to download your report.
+  </p>
+
+  <a href="#" class="download-btn" id="downloadBtn">Download Core Report</a>
+</div>
+
+<div class="upsell-section">
+  <div class="upsell-card">
+    <div class="upsell-badge">🔬 Optional Upgrade</div>
+    <h2>Curious About the Clinical Layer?</h2>
+    <p>
+      Your Core Report covered wellness and medication response. Want to explore
+      variants flagged in clinical databases?
+    </p>
+
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon">🧬</div>
+        <div class="benefit-text">
+          <strong>Clinical Database Screening</strong>
+          <span>Variants flagged as pathogenic or likely pathogenic in ClinVar</span>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">📋</div>
+        <div class="benefit-text">
+          <strong>Confirmatory Testing Guidance</strong>
+          <span>Clear next steps for clinical-grade verification</span>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">👨‍👩‍👧</div>
+        <div class="benefit-text">
+          <strong>Family Planning Considerations</strong>
+          <span>Hereditary implications and carrier screening context</span>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-text">
+          <strong>Full Pharmacogenomics Table</strong>
+          <span>All evidence levels, not just Level 1A/1B</span>
+        </div>
+      </div>
+    </div>
+
+    <p style="background:rgba(255,243,205,0.1);padding:16px;border-radius:8px;font-size:0.88rem;border-left:3px solid #ffc107;">
+      <strong style="color:#ffc107;">Important:</strong> The Deep Dive is still informational—not diagnostic.
+      Any flagged variants require clinical-grade confirmation testing. This is entirely optional.
+    </p>
+
+    <button class="upgrade-btn" id="upgradeBtn">Upgrade to Deep Dive — $79</button>
+
+    <a href="/" class="skip-link">I'm good with my Core Report</a>
+  </div>
+</div>
+
+<script>
+  const params      = new URLSearchParams(window.location.search);
+  const sessionId   = params.get('session_id')  || '';
+  const analysisId  = params.get('analysis_id') || '';
+
+  // Download Core Report
+  document.getElementById('downloadBtn').onclick = async (e) => {
+    e.preventDefault();
+    const url =
+      `/api/complete-core` +
+      `?session_id=${encodeURIComponent(sessionId)}` +
+      `&analysis_id=${encodeURIComponent(analysisId)}`;
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Download failed');
+
+      const blob = await resp.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `DNA-Decoder-Core-Report.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+
+      document.getElementById('downloadBtn').textContent = '✓ Downloaded!';
+    } catch (err) {
+      alert('Download failed. Please contact support.');
+    }
+  };
+
+  // Upgrade to Deep Dive
+  document.getElementById('upgradeBtn').onclick = async () => {
+    // For now, just redirect to checkout for Deep Dive
+    // TODO: Implement upgrade flow
+    window.location.href = `/?analysis_id=${analysisId}&upgrade=true`;
+  };
+</script>
+
+</body>
+</html>

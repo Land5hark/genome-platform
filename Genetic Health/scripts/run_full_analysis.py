@@ -1146,11 +1146,16 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
     # Run lifestyle/health analysis
     health_results = analyze_lifestyle_health(genome_by_rsid, pharmgkb)
 
-    # Save intermediate results for exhaustive report generator
+    # Run disease risk analysis
+    disease_findings, disease_stats = load_clinvar_and_analyze(genome_by_position)
+
+    # Save comprehensive results including disease findings
     results_json = {
         'findings': health_results['findings'],
         'pharmgkb_findings': health_results['pharmgkb_findings'],
         'summary': health_results['summary'],
+        'disease_findings': disease_findings,
+        'disease_stats': disease_stats,
     }
     intermediate_path = REPORTS_DIR / "comprehensive_results.json"
     with open(intermediate_path, 'w', encoding='utf-8') as f:
@@ -1159,9 +1164,6 @@ def run_full_analysis(genome_path: Path = None, subject_name: str = None):
     # Generate exhaustive genetic report
     genetic_report_path = REPORTS_DIR / "EXHAUSTIVE_GENETIC_REPORT.md"
     generate_exhaustive_genetic_report(health_results, genetic_report_path, subject_name)
-
-    # Run disease risk analysis
-    disease_findings, disease_stats = load_clinvar_and_analyze(genome_by_position)
 
     # Generate disease risk report
     if disease_findings:

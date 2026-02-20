@@ -27,6 +27,8 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 from run_full_analysis import REPORTS_DIR, run_full_analysis  # noqa: E402
 from generate_summary_report import generate_summary_report  # noqa: E402
+from generate_core_report import generate_core_report  # noqa: E402
+from generate_deep_dive_report import generate_deep_dive_report  # noqa: E402
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 
@@ -353,9 +355,117 @@ def checkout():
     return jsonify({"checkout_url": checkout_session.url})
 
 
+@app.post('/api/checkout-core')
+def checkout_core():
+    """Create Stripe Checkout for $39 Core Report (lifestyle + pharma quick card only)."""
+    data = request.get_json(silent=True) or {}
+    analysis_id = data.get("analysis_id", "")
+    subject_name = data.get("subject_name") or "report"
+
+    session_dir = SESSIONS_DIR / analysis_id
+    if not analysis_id or not session_dir.exists():
+        return jsonify({'error': 'Invalid or expired analysis session'}), 400
+
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    if not stripe.api_key:
+        return jsonify({'error': 'Payment not configured'}), 503
+
+    # Pull the referrer code that brought this buyer
+    from_ref_file = session_dir / "from_ref.txt"
+    from_ref = from_ref_file.read_text(encoding='utf-8').strip() if from_ref_file.exists() else None
+
+    metadata = {"analysis_id": analysis_id, "subject_name": subject_name, "tier": "core"}
+    if from_ref:
+        metadata["from_ref"] = from_ref
+
+    checkout_session = stripe.checkout.Session.create(
+        mode="payment",
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "unit_amount": 3900,  # $39.00
+                "product_data": {
+                    "name": "DNA Decoder Core Report",
+                    "description": "Lifestyle genetics + pharmacogenomics quick card - actionable wellness insights",
+                },
+            },
+            "quantity": 1,
+        }],
+        success_url=(
+            f"{BASE_URL}/success-core"
+            f"?session_id={{CHECKOUT_SESSION_ID}}"
+            f"&analysis_id={analysis_id}"
+        ),
+        cancel_url=f"{BASE_URL}/",
+        metadata=metadata,
+    )
+
+    return jsonify({"checkout_url": checkout_session.url})
+
+
 @app.get('/success')
 def success_page():
     return send_from_directory(REPO_ROOT, 'thank-you.html')
+
+
+@app.get('/success-core')
+def success_core_page():
+    """Success page for Core Report purchase (shows upsell option)."""
+    return send_from_directory(REPO_ROOT, 'thank-you-core.html')
+
+
+@app.get('/api/complete-core')
+def complete_core():
+    """Deliver $39 Core Report after payment verification."""
+    session_id   = request.args.get("session_id", "")
+    analysis_id  = request.args.get("analysis_id", "")
+
+    session_dir = SESSIONS_DIR / analysis_id
+    if not analysis_id or not session_dir.exists():
+        return jsonify({'error': 'Invalid or expired analysis session'}), 400
+
+    # Verify payment with Stripe
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    if stripe.api_key:
+        try:
+            stripe_session = stripe.checkout.Session.retrieve(session_id)
+            if stripe_session.payment_status != "paid":
+                return jsonify({'error': 'Payment not completed'}), 402
+        except stripe.StripeError as e:
+            return jsonify({'error': f'Payment verification failed: {e}'}), 402
+
+    # Load subject name from metadata
+    subject_name = stripe_session.metadata.get('subject_name') or None
+
+    # Generate Core Report
+    results_path = session_dir / "comprehensive_results.json"
+    core_md_path = session_dir / "DNA_DECODER_CORE_REPORT.md"
+    core_html_path = session_dir / "DNA_DECODER_CORE_REPORT.html"
+
+    if not core_md_path.exists():
+        results = json.loads(results_path.read_text(encoding='utf-8'))
+        try:
+            core_md, core_html = generate_core_report(results, subject_name=subject_name)
+        except Exception as e:
+            return jsonify({'error': f'Core report generation failed: {e}'}), 500
+
+        core_md_path.write_text(core_md, encoding='utf-8')
+        core_html_path.write_text(core_html, encoding='utf-8')
+
+    # Build ZIP with Core Report only (MD + HTML)
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.write(core_md_path, arcname="DNA_DECODER_CORE_REPORT.md")
+        zf.write(core_html_path, arcname="DNA_DECODER_CORE_REPORT.html")
+
+    zip_buffer.seek(0)
+    safe_name = (subject_name or "report").replace(" ", "_")
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"DNA-Decoder-Core-{safe_name}.zip",
+    )
 
 
 def _make_pretty_html(title: str, markdown_content: str) -> str:
@@ -475,29 +585,71 @@ def complete():
     if not subject_name and name_file.exists():
         subject_name = name_file.read_text(encoding='utf-8').strip()
 
-    # Generate the 4th master summary report
+    # For Deep Dive ($79) purchase: Generate BOTH Core and Deep Dive reports
     results_path = session_dir / "comprehensive_results.json"
-    master_report_path = session_dir / "MASTER_SUMMARY_REPORT.md"
+    core_md_path = session_dir / "DNA_DECODER_CORE_REPORT.md"
+    core_html_path = session_dir / "DNA_DECODER_CORE_REPORT.html"
+    deep_dive_md_path = session_dir / "DNA_DECODER_DEEP_DIVE_REPORT.md"
+    deep_dive_html_path = session_dir / "DNA_DECODER_DEEP_DIVE_REPORT.html"
 
+    if not core_md_path.exists() or not deep_dive_md_path.exists():
+        results = json.loads(results_path.read_text(encoding='utf-8'))
+
+        # Load disease findings from the disease risk report data
+        # (This will be available from run_full_analysis output)
+        # For now, we'll parse it from the comprehensive_results if available
+        # TODO: Update run_full_analysis to save disease_findings separately
+        disease_findings = results.get('disease_findings', {})
+
+        try:
+            # Generate Core Report
+            core_md, core_html = generate_core_report(results, subject_name=subject_name)
+            core_md_path.write_text(core_md, encoding='utf-8')
+            core_html_path.write_text(core_html, encoding='utf-8')
+
+            # Generate Deep Dive Report
+            deep_dive_md, deep_dive_html = generate_deep_dive_report(
+                results, disease_findings, subject_name=subject_name
+            )
+            deep_dive_md_path.write_text(deep_dive_md, encoding='utf-8')
+            deep_dive_html_path.write_text(deep_dive_html, encoding='utf-8')
+
+        except Exception as e:
+            return jsonify({'error': f'Report generation failed: {e}'}), 500
+
+    # Also generate the legacy master summary report (for backward compatibility)
+    master_report_path = session_dir / "MASTER_SUMMARY_REPORT.md"
     if not master_report_path.exists():
         results = json.loads(results_path.read_text(encoding='utf-8'))
         try:
             summary_md = generate_summary_report(results, subject_name=subject_name)
         except Exception as e:
-            return jsonify({'error': f'Report generation failed: {e}'}), 500
-        master_report_path.write_text(summary_md, encoding='utf-8')
+            pass  # Don't fail if legacy summary fails
+        else:
+            master_report_path.write_text(summary_md, encoding='utf-8')
 
-    # Build ZIP of all 4 reports (+ pretty HTML if purchased)
+    # Build ZIP of Deep Dive package (includes Core + Deep Dive + legacy reports)
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        all_reports = list(REPORT_NAMES) + ["MASTER_SUMMARY_REPORT.md"]
-        for name in all_reports:
+        # Add new two-tier reports
+        if core_md_path.exists():
+            zf.write(core_md_path, arcname="DNA_DECODER_CORE_REPORT.md")
+        if core_html_path.exists():
+            zf.write(core_html_path, arcname="DNA_DECODER_CORE_REPORT.html")
+        if deep_dive_md_path.exists():
+            zf.write(deep_dive_md_path, arcname="DNA_DECODER_DEEP_DIVE_REPORT.md")
+        if deep_dive_html_path.exists():
+            zf.write(deep_dive_html_path, arcname="DNA_DECODER_DEEP_DIVE_REPORT.html")
+
+        # Add legacy reports (for backward compatibility)
+        all_legacy_reports = list(REPORT_NAMES) + ["MASTER_SUMMARY_REPORT.md"]
+        for name in all_legacy_reports:
             p = session_dir / name
             if p.exists():
-                zf.write(p, arcname=f"reports/{name}")
+                zf.write(p, arcname=f"legacy/{name}")
 
         if "pretty_print" in add_ons:
-            for name in all_reports:
+            for name in all_legacy_reports:
                 p = session_dir / name
                 if p.exists():
                     md = p.read_text(encoding='utf-8')

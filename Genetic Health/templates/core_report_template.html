@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Decoder: Core Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin: 40px 0 20px 0;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 1.3em;
+            margin: 30px 0 15px 0;
+        }
+
+        .summary-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .summary-box strong {
+            color: #2c3e50;
+        }
+
+        .summary-box ul {
+            margin: 15px 0 0 20px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .section-card {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .section-card .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-list {
+            counter-reset: action-counter;
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .action-list li {
+            counter-increment: action-counter;
+            padding: 15px;
+            margin: 10px 0;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            border-radius: 4px;
+        }
+
+        .action-list li::before {
+            content: "Day " counter(action-counter) ": ";
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .supplement-table {
+            background: white;
+        }
+
+        .supplement-table th {
+            background: #6c757d;
+        }
+
+        .confidence-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .confidence-card {
+            background: white;
+            border: 2px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .confidence-card h4 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .upgrade-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 40px 0;
+        }
+
+        .upgrade-cta h2 {
+            color: white;
+            border: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+        }
+
+        .upgrade-cta button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .upgrade-cta button:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .disclaimer {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .upgrade-cta {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .confidence-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DNA Decoder: Core Report</h1>
+            <p class="subtitle">Your Personalized Genetic Wellness Guide</p>
+        </header>
+
+        <section id="executive-summary">
+            <h2>Executive Summary</h2>
+            <div class="summary-box">
+                <p>Welcome to your DNA Decoder Core Report. This report translates <strong>{snps_analyzed}</strong> genetic variants from your raw data into actionable wellness insights about how your body may respond to foods, supplements, medications, and lifestyle factors.</p>
+
+                <p><strong>What's Inside:</strong></p>
+                <ul>
+                    <li>{lifestyle_findings_count} lifestyle and wellness insights</li>
+                    <li>{pharma_findings_count} medication response notes</li>
+                    <li>Evidence-based action experiments</li>
+                    <li>Personalized supplement considerations</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h4>What This Report Covers:</h4>
+                <p>This Core Report focuses on wellness genetics and medication response—the areas where you can take action today. We analyze variants related to nutrition, metabolism, detoxification, sleep, and how your body processes common medications.</p>
+            </div>
+
+            <div class="warning-box">
+                <h4>What This Report Doesn't Cover:</h4>
+                <p>Clinical-grade disease risk screening requires separate analysis. If you're interested in exploring variants that may warrant confirmatory testing with a healthcare provider, that's available in the optional Deep Dive Clinical Context Report.</p>
+            </div>
+
+            <div class="info-box">
+                <h4>Important Context:</h4>
+                <ul>
+                    <li>This analysis is educational, not diagnostic</li>
+                    <li>Based on direct-to-consumer raw data (not clinical-grade sequencing)</li>
+                    <li>Many findings have emerging or limited evidence</li>
+                    <li>Always discuss significant changes with your healthcare provider</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="top-insights">
+            <h2>Your Top Insights</h2>
+            {top_insights_section}
+        </section>
+
+        <section id="genetics-categories">
+            <h2>What Your Genes Suggest About...</h2>
+
+            <div class="section-card">
+                <div class="icon">☕</div>
+                <h3>Caffeine Metabolism</h3>
+                <p><strong>Your Pattern:</strong> {caffeine_metabolism_summary}</p>
+                {caffeine_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{caffeine_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{caffeine_action}</p>
+            </div>
+
+            <div class="section-card">
+                <div class="icon">🧬</div>
+                <h3>Methylation & B-Vitamins</h3>
+                <p><strong>Your Pattern:</strong> {methylation_summary}</p>
+                {methylation_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{methylation_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{methylation_action}</p>
+            </div>
+
+            <div class="section-card">
+                <div class="icon">🛡️</div>
+                <h3>Detoxification & Antioxidant Systems</h3>
+                <p><strong>Your Pattern:</strong> {detox_summary}</p>
+                {detox_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{detox_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{detox_action}</p>
+            </div>
+
+            <div class="section-card">
+                <div class="icon">⚖️</div>
+                <h3>Weight, Glucose & Metabolism</h3>
+                <p><strong>Your Pattern:</strong> {metabolism_summary}</p>
+                {metabolism_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{metabolism_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{metabolism_action}</p>
+            </div>
+
+            <div class="section-card">
+                <div class="icon">💓</div>
+                <h3>Blood Pressure & Cardiovascular Tendencies</h3>
+                <p><strong>Your Pattern:</strong> {bp_summary}</p>
+                {bp_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{bp_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{bp_action}</p>
+            </div>
+
+            <div class="section-card">
+                <div class="icon">😴</div>
+                <h3>Sleep & Circadian Rhythm</h3>
+                <p><strong>Your Pattern:</strong> {sleep_summary}</p>
+                {sleep_details}
+                <p><strong>What This Means:</strong></p>
+                <p>{sleep_interpretation}</p>
+                <p><strong>Try This:</strong></p>
+                <p>{sleep_action}</p>
+            </div>
+        </section>
+
+        <section id="medication-response">
+            <h2>💊 Medication Response Quick Card</h2>
+            <div class="warning-box">
+                <p><strong>Share this section with your prescriber when discussing medications</strong></p>
+                <p>Your genetic variants may influence how you metabolize certain medications. This is informational only—never change medications without medical supervision.</p>
+            </div>
+
+            {pharma_quick_table}
+
+            <p><strong>Evidence Levels:</strong></p>
+            <ul>
+                <li>⭐⭐⭐⭐ Strong clinical evidence (FDA recognized or major guidelines)</li>
+                <li>⭐⭐⭐ Moderate evidence (replicated studies)</li>
+                <li>⭐⭐ Emerging evidence (preliminary research)</li>
+            </ul>
+
+            <div class="info-box">
+                <h4>Next Steps:</h4>
+                <ul>
+                    <li>Bring this to your doctor or pharmacist</li>
+                    <li>Ask if pharmacogenomic testing is recommended</li>
+                    <li>Request a medication review if you're taking any flagged drugs</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="action-experiments">
+            <h2>🎯 Your 7-Day Action Experiments</h2>
+            <p>Start with one experiment at a time and track how you feel:</p>
+
+            <ul class="action-list">
+                {action_experiments_list}
+            </ul>
+        </section>
+
+        <section id="supplements">
+            <h2>🧪 Supplement Considerations</h2>
+            <div class="warning-box">
+                <p><strong>Before starting any supplement, discuss with your healthcare provider.</strong></p>
+            </div>
+
+            <p>Based on your genetic patterns, these may be worth exploring with medical guidance:</p>
+
+            {supplement_suggestions_table}
+
+            <div class="info-box">
+                <h4>Important:</h4>
+                <ul>
+                    <li>These are considerations, not prescriptions</li>
+                    <li>Quality and dosing matter—work with a practitioner</li>
+                    <li>Some supplements interact with medications</li>
+                    <li>Track your response and adjust accordingly</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="confidence">
+            <h2>📊 Confidence & Limitations</h2>
+
+            <div class="confidence-grid">
+                <div class="confidence-card">
+                    <h4>✅ What This Analysis Can Tell You</h4>
+                    <ul>
+                        <li>Common genetic variants present in your raw data</li>
+                        <li>Research-backed associations between variants and traits</li>
+                        <li>Medication metabolism patterns recognized by pharmacogenomics</li>
+                    </ul>
+                </div>
+
+                <div class="confidence-card">
+                    <h4>⚠️ What This Analysis Cannot Tell You</h4>
+                    <ul>
+                        <li>Clinical diagnoses (that requires a doctor)</li>
+                        <li>Rare or complex genetic conditions (requires clinical sequencing)</li>
+                        <li>Exact quantified risk (genetics is one of many factors)</li>
+                        <li>What will definitely happen (genes aren't destiny)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>Data Quality Notes</h4>
+                <ul>
+                    <li><strong>SNPs Analyzed:</strong> {snps_analyzed}</li>
+                    <li><strong>Coverage:</strong> Direct-to-consumer raw data covers common variants but misses rare mutations</li>
+                    <li><strong>Confirmation:</strong> High-priority findings should be confirmed with clinical-grade testing</li>
+                    <li><strong>Context Matters:</strong> Diet, lifestyle, environment, and other genes all influence outcomes</li>
+                </ul>
+            </div>
+
+            <div class="summary-box">
+                <h4>How to Use This Report</h4>
+                <ol>
+                    <li><strong>Read for patterns, not panic.</strong> These are tendencies, not certainties.</li>
+                    <li><strong>Start small.</strong> Pick 1-2 action experiments to try first.</li>
+                    <li><strong>Track your response.</strong> Your body's feedback is the ultimate guide.</li>
+                    <li><strong>Consult professionals.</strong> Share relevant sections with your healthcare team.</li>
+                    <li><strong>Stay curious.</strong> Genetics research is rapidly evolving.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="appendix">
+            <h2>📚 Appendix: Variant Details</h2>
+            {variant_footnotes}
+        </section>
+
+        <div class="upgrade-cta">
+            <h2>Need More?</h2>
+            <p><strong>Interested in a deeper clinical perspective?</strong></p>
+            <p>The DNA Decoder Deep Dive Clinical Context Report explores additional variant categories that may warrant confirmatory testing. This optional report includes:</p>
+            <ul style="text-align: left; display: inline-block; margin: 15px 0;">
+                <li>Flagged variants from clinical databases (ClinVar)</li>
+                <li>Guidance on clinical confirmation testing</li>
+                <li>Family planning considerations</li>
+                <li>Full pharmacogenomics reference table</li>
+            </ul>
+            <p><strong>This deep dive is entirely optional.</strong> Most people find the Core Report gives them everything they need to take action on their wellness.</p>
+            <button onclick="window.location.href='#upgrade'">Upgrade to Deep Dive Report →</button>
+        </div>
+
+        <footer>
+            <p><em>Generated on {report_date}</em></p>
+            <p><strong>DNA Decoder by Genome Platform</strong></p>
+
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This report is for educational and informational purposes only. It is not intended to diagnose, treat, cure, or prevent any disease. Always consult with a qualified healthcare provider before making decisions about your health based on genetic information.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
