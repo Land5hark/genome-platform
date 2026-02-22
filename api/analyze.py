@@ -238,6 +238,43 @@ def _build_teasers(results: dict) -> list[dict]:
     return teasers[:5]
 
 
+def _extract_genome_from_zip(zip_path: Path, dest_dir: Path) -> Path:
+    """Extract the genome data file from an AncestryDNA or 23andMe ZIP.
+
+    Looks for the largest .txt or .csv file inside the ZIP — that's always
+    the raw SNP data. Raises ValueError with a clear message if nothing
+    suitable is found.
+    """
+    with zipfile.ZipFile(zip_path, 'r') as zf:
+        members = zf.namelist()
+        logger.info(f"  ZIP contents: {members}")
+
+        # Find .txt or .csv files, pick the largest one (the genome data file)
+        candidates = [
+            m for m in members
+            if m.lower().endswith(('.txt', '.csv'))
+            and not m.startswith('__MACOSX')  # skip Mac metadata
+            and not Path(m).name.startswith('.')
+        ]
+
+        if not candidates:
+            raise ValueError(
+                "No .txt or .csv file found inside the ZIP. "
+                "Please make sure you are uploading the original ZIP downloaded "
+                "from AncestryDNA or 23andMe — not a re-zipped or renamed file."
+            )
+
+        # Pick the largest file (genome data is always the biggest)
+        best = max(candidates, key=lambda m: zf.getinfo(m).file_size)
+        logger.info(f"  Extracting: {best} ({zf.getinfo(best).file_size:,} bytes)")
+
+        extracted_path = dest_dir / Path(best).name
+        with zf.open(best) as src, open(extracted_path, 'wb') as dst:
+            dst.write(src.read())
+
+    return extracted_path
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -279,14 +316,17 @@ def analyze():
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
             ext = Path(uploaded.filename).suffix.lower() or '.txt'
-            # Normalize extension — treat all text-like extensions the same
-            if ext not in ('.txt', '.csv', '.tsv'):
-                ext = '.txt'
-            genome_path = tmp_path / f'genome_upload{ext}'
-            uploaded.save(genome_path)
+            raw_path = tmp_path / f'raw_upload{ext}'
+            uploaded.save(raw_path)
 
-            file_size = genome_path.stat().st_size
-            logger.info(f"  Saved upload: {genome_path.name} ({file_size:,} bytes, ext={ext})")
+            file_size = raw_path.stat().st_size
+            logger.info(f"  Saved upload: {raw_path.name} ({file_size:,} bytes, ext={ext})")
+
+            # If it's a ZIP, extract the genome text file from inside
+            genome_path = raw_path
+            if ext == '.zip':
+                genome_path = _extract_genome_from_zip(raw_path, tmp_path)
+                logger.info(f"  Extracted from ZIP: {genome_path.name} ({genome_path.stat().st_size:,} bytes)")
 
             t0 = time.time()
             run_full_analysis(genome_path=genome_path, subject_name=subject_name)
