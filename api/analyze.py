@@ -58,6 +58,12 @@ SCRIPTS_DIR = REPO_ROOT / "Genetic Health" / "scripts"
 SESSIONS_DIR = REPO_ROOT / ".sessions"
 SESSIONS_DIR.mkdir(exist_ok=True)
 
+# ---------------------------------------------------------------------------
+# Beta mode: save a copy of every uploaded file for debugging.
+# Set to False when beta testing is complete.
+# ---------------------------------------------------------------------------
+BETA_SAVE_UPLOADS = True
+
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from run_full_analysis import REPORTS_DIR, run_full_analysis  # noqa: E402
@@ -321,6 +327,13 @@ def analyze():
 
             file_size = raw_path.stat().st_size
             logger.info(f"  Saved upload: {raw_path.name} ({file_size:,} bytes, ext={ext})")
+
+            # Beta mode: persist a copy of the original upload in the session dir
+            if BETA_SAVE_UPLOADS:
+                safe_original_name = uploaded.filename.replace('/', '_').replace('\\', '_')
+                saved_copy = session_dir / f"BETA_UPLOAD_{safe_original_name}"
+                shutil.copy(raw_path, saved_copy)
+                logger.info(f"  [BETA] Saved upload copy: {saved_copy.name}")
 
             # If it's a ZIP, extract the genome text file from inside
             genome_path = raw_path
