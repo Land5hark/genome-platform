@@ -806,6 +806,85 @@
             display: none;
         }
 
+        /* File guide box */
+        .file-guide {
+            background: rgba(124, 58, 237, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.25);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+        }
+
+        .file-guide-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .file-guide-title strong {
+            color: var(--text);
+        }
+
+        .file-guide-steps {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .file-guide-divider {
+            width: 1px;
+            background: var(--border-light);
+            height: 100%;
+            min-height: 40px;
+        }
+
+        .provider-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--purple-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .provider-steps {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .provider-steps strong {
+            color: var(--text);
+        }
+
+        .provider-note {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        .provider-note code {
+            background: var(--bg-elevated);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--purple-light);
+        }
+
+        @media (max-width: 520px) {
+            .file-guide-steps {
+                grid-template-columns: 1fr;
+            }
+            .file-guide-divider {
+                width: 100%;
+                height: 1px;
+                min-height: 0;
+            }
+        }
+
         .results-stats {
             text-align: center;
             margin-bottom: 32px;
@@ -1375,11 +1454,28 @@
                 <p>Your report is just a few clicks away</p>
             </div>
             <div class="upload-card">
+                <div class="file-guide">
+                    <div class="file-guide-title">⚠️ You need your <strong>Raw DNA Data</strong> file — not your ethnicity report</div>
+                    <div class="file-guide-steps">
+                        <div class="file-guide-provider">
+                            <div class="provider-name">AncestryDNA</div>
+                            <div class="provider-steps">Sign in → DNA → Settings → <strong>Download Raw DNA Data</strong></div>
+                            <div class="provider-note">File will be named something like <code>dna-data-2024-01-01.zip</code></div>
+                        </div>
+                        <div class="file-guide-divider"></div>
+                        <div class="file-guide-provider">
+                            <div class="provider-name">23andMe</div>
+                            <div class="provider-steps">Sign in → Tools → Data &amp; Reports → <strong>Download Raw Data</strong></div>
+                            <div class="provider-note">File will be named something like <code>genome_Full_20240101.zip</code></div>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="analyzeForm">
                     <label for="subject_name">Name (optional)</label>
                     <input id="subject_name" name="subject_name" type="text" placeholder="Jane Doe">
 
-                    <label for="genome_file">Raw DNA file (.txt or .csv)</label>
+                    <label for="genome_file">Raw DNA Data file (.txt, .csv, or .zip)</label>
                     <input id="genome_file" name="genome_file" type="file" accept=".txt,.csv,.tsv,.zip,.gz" required>
 
                     <button class="btn-primary btn-large" type="submit" id="analyzeBtn" style="width:100%;">

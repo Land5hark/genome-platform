@@ -129,6 +129,13 @@ def load_genome(genome_path: Path) -> tuple:
         print(f"    Skipped {skipped:,} invalid/header lines")
     if len(genome_by_rsid) == 0:
         print("    WARNING: No SNPs loaded! Check file format.")
+        raise ValueError(
+            "No SNPs found in the uploaded file. "
+            "Please make sure you are uploading your Raw DNA Data file — not an ethnicity/composition report. "
+            "For AncestryDNA: sign in → DNA → Settings → Download Raw DNA Data. "
+            "For 23andMe: sign in → Tools → Data & Reports → Download Raw Data. "
+            "The file should contain hundreds of thousands of lines with columns like: rsid, chromosome, position, genotype."
+        )
     return genome_by_rsid, genome_by_position
 
 
