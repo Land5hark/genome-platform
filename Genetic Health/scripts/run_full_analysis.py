@@ -51,22 +51,57 @@ def print_step(text):
 # GENOME LOADING
 # =============================================================================
 
+def _detect_delimiter(first_data_line: str) -> str:
+    """Auto-detect whether the file is tab-delimited or comma-delimited."""
+    tab_count = first_data_line.count('\t')
+    comma_count = first_data_line.count(',')
+    if tab_count >= 3:
+        return '\t'
+    if comma_count >= 3:
+        return ','
+    # Fall back to tab (standard format)
+    return '\t'
+
+
 def load_genome(genome_path: Path) -> tuple:
-    """Load 23andMe/Ancestry genome file into dictionaries."""
+    """Load 23andMe/Ancestry genome file into dictionaries.
+
+    Accepts tab-delimited (.txt) and comma-delimited (.csv) files
+    with any filename. Automatically detects the delimiter.
+    """
     print_step(f"Loading genome from {genome_path}")
 
     genome_by_rsid = {}
     genome_by_position = {}
+    skipped = 0
+    delimiter = None
 
     with open(genome_path, 'r', encoding='utf-8', errors='replace') as f:
         for line in f:
-            if line.startswith('#'):
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
                 continue
-            parts = line.strip().split('\t')
+
+            # Auto-detect delimiter from first data line
+            if delimiter is None:
+                delimiter = _detect_delimiter(stripped)
+                print(f"    Detected delimiter: {'TAB' if delimiter == chr(9) else 'COMMA'}")
+
+            parts = stripped.split(delimiter)
+
+            # Strip whitespace from each field (CSV files often have spaces)
+            parts = [p.strip().strip('"').strip("'") for p in parts]
+
             if len(parts) < 4:
+                skipped += 1
                 continue
 
             rsid, chrom, pos = parts[0], parts[1], parts[2]
+
+            # Basic validation: rsid should start with 'rs' or 'i'
+            if not rsid.startswith(('rs', 'i')):
+                skipped += 1
+                continue
 
             if len(parts) >= 5:
                 # Ancestry style: allele1 + allele2
@@ -75,7 +110,7 @@ def load_genome(genome_path: Path) -> tuple:
                 # 23andMe style: single genotype column
                 genotype = parts[3]
 
-            if genotype == '--':
+            if genotype in ('--', '00', ''):
                 continue
 
             genome_by_rsid[rsid] = {
@@ -90,6 +125,10 @@ def load_genome(genome_path: Path) -> tuple:
             }
 
     print(f"    Loaded {len(genome_by_rsid):,} SNPs")
+    if skipped > 0:
+        print(f"    Skipped {skipped:,} invalid/header lines")
+    if len(genome_by_rsid) == 0:
+        print("    WARNING: No SNPs loaded! Check file format.")
     return genome_by_rsid, genome_by_position
 
 

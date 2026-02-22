@@ -1,10 +1,12 @@
 import io
 import json
+import logging
 import os
 import shutil
 import sys
 import tempfile
 import time
+import traceback
 import uuid
 import zipfile
 from datetime import datetime, timedelta
@@ -17,6 +19,39 @@ import stripe
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Logging setup — writes to .logs/ directory at repo root
+# ---------------------------------------------------------------------------
+_REPO_ROOT_EARLY = Path(__file__).resolve().parent.parent
+_LOG_DIR = _REPO_ROOT_EARLY / ".logs"
+_LOG_DIR.mkdir(exist_ok=True)
+
+# File handler: detailed logs with timestamps
+_file_handler = logging.FileHandler(
+    _LOG_DIR / "server.log", encoding="utf-8"
+)
+_file_handler.setLevel(logging.DEBUG)
+_file_handler.setFormatter(logging.Formatter(
+    "%(asctime)s | %(levelname)-8s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+))
+
+# Console handler: info+ only
+_console_handler = logging.StreamHandler()
+_console_handler.setLevel(logging.INFO)
+_console_handler.setFormatter(logging.Formatter(
+    "%(asctime)s | %(levelname)-8s | %(message)s",
+    datefmt="%H:%M:%S",
+))
+
+logger = logging.getLogger("dna_decoder")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(_file_handler)
+logger.addHandler(_console_handler)
+
+# Also capture Flask/Werkzeug logs
+logging.getLogger("werkzeug").addHandler(_file_handler)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = REPO_ROOT / "Genetic Health" / "scripts"
@@ -223,6 +258,7 @@ def analyze():
 
     uploaded = request.files.get('genome_file')
     if not uploaded or uploaded.filename == '':
+        logger.warning("Analyze request with no file attached")
         return jsonify({'error': 'Missing genome_file upload'}), 400
 
     subject_name = request.form.get('subject_name') or None
@@ -231,21 +267,41 @@ def analyze():
     session_dir = SESSIONS_DIR / analysis_id
     session_dir.mkdir(parents=True, exist_ok=True)
 
+    logger.info("="*60)
+    logger.info(f"NEW ANALYSIS | id={analysis_id}")
+    logger.info(f"  File: {uploaded.filename}  Subject: {subject_name or '(none)'}  Ref: {from_ref or '(none)'}")
+
     # Record which referral code brought this visitor (if any)
     if from_ref:
         (session_dir / "from_ref.txt").write_text(from_ref, encoding='utf-8')
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_path = Path(tmp_dir)
-        ext = Path(uploaded.filename).suffix or '.txt'
-        genome_path = tmp_path / f'genome_upload{ext}'
-        uploaded.save(genome_path)
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            ext = Path(uploaded.filename).suffix.lower() or '.txt'
+            # Normalize extension — treat all text-like extensions the same
+            if ext not in ('.txt', '.csv', '.tsv'):
+                ext = '.txt'
+            genome_path = tmp_path / f'genome_upload{ext}'
+            uploaded.save(genome_path)
 
-        run_full_analysis(genome_path=genome_path, subject_name=subject_name)
+            file_size = genome_path.stat().st_size
+            logger.info(f"  Saved upload: {genome_path.name} ({file_size:,} bytes, ext={ext})")
+
+            t0 = time.time()
+            run_full_analysis(genome_path=genome_path, subject_name=subject_name)
+            elapsed = time.time() - t0
+            logger.info(f"  Analysis completed in {elapsed:.1f}s")
+
+    except Exception as e:
+        logger.error(f"  ANALYSIS FAILED: {e}")
+        logger.debug(traceback.format_exc())
+        return jsonify({'error': f'Analysis failed: {e}'}), 500
 
     # Copy reports and JSON into persistent session folder
     results_json_path = REPORTS_DIR / "comprehensive_results.json"
     if not results_json_path.exists():
+        logger.error(f"  No results JSON produced for {analysis_id}")
         return jsonify({'error': 'Analysis produced no results'}), 500
 
     shutil.copy(results_json_path, session_dir / "comprehensive_results.json")
@@ -263,6 +319,16 @@ def analyze():
     teasers = _build_teasers(results)
     summary = results.get("summary", {})
     disease_stats = results.get("disease_stats", {})
+
+    logger.info(f"  Results: {summary.get('total_snps', 0)} SNPs, "
+                f"{summary.get('high_impact', 0)} high-impact, "
+                f"{len(results.get('pharmgkb_findings', []))} drug interactions, "
+                f"{len(teasers)} teasers generated")
+
+    if len(teasers) == 0:
+        logger.warning(f"  WARNING: 0 teasers generated! findings={len(results.get('findings', []))}, "
+                       f"pharmgkb={len(results.get('pharmgkb_findings', []))}, "
+                       f"disease_stats={disease_stats}")
 
     return jsonify({
         "analysis_id": analysis_id,
@@ -502,15 +568,24 @@ def complete_core():
     core_md_path = session_dir / "DNA_DECODER_CORE_REPORT.md"
     core_html_path = session_dir / "DNA_DECODER_CORE_REPORT.html"
 
+    logger.info(f"CORE REPORT | analysis_id={analysis_id} subject={subject_name}")
+
     if not core_md_path.exists():
         results = json.loads(results_path.read_text(encoding='utf-8'))
+        logger.info(f"  Generating core report (findings={len(results.get('findings', []))}, "
+                     f"pharmgkb={len(results.get('pharmgkb_findings', []))})")
         try:
             core_md, core_html = generate_core_report(results, subject_name=subject_name)
         except Exception as e:
+            logger.error(f"  Core report generation FAILED: {e}")
+            logger.debug(traceback.format_exc())
             return jsonify({'error': f'Core report generation failed: {e}'}), 500
 
         core_md_path.write_text(core_md, encoding='utf-8')
         core_html_path.write_text(core_html, encoding='utf-8')
+        logger.info(f"  Core report generated ({len(core_md):,} chars MD, {len(core_html):,} chars HTML)")
+    else:
+        logger.info("  Core report already cached, reusing")
 
     # Build ZIP with Core Report only (MD + HTML)
     zip_buffer = io.BytesIO()
@@ -520,6 +595,7 @@ def complete_core():
 
     zip_buffer.seek(0)
     safe_name = (subject_name or "report").replace(" ", "_")
+    logger.info(f"  Sending ZIP: DNA-Decoder-Core-{safe_name}.zip")
     return send_file(
         zip_buffer,
         mimetype='application/zip',
@@ -732,5 +808,31 @@ def health():
     return jsonify({'status': 'ok'})
 
 
+@app.get('/api/logs')
+def view_logs():
+    """View recent server logs (for testing/debugging only).
+    Query params: ?lines=100 (default 200), ?level=ERROR (filter by level)
+    """
+    log_path = _LOG_DIR / "server.log"
+    if not log_path.exists():
+        return jsonify({'logs': '(no logs yet)', 'lines': 0})
+
+    num_lines = int(request.args.get('lines', 200))
+    level_filter = request.args.get('level', '').upper()
+
+    lines = log_path.read_text(encoding='utf-8', errors='replace').splitlines()
+    lines = lines[-num_lines:]  # tail
+
+    if level_filter:
+        lines = [l for l in lines if f'| {level_filter}' in l]
+
+    return jsonify({
+        'logs': '\n'.join(lines),
+        'lines': len(lines),
+        'log_file': str(log_path),
+    })
+
+
 if __name__ == '__main__':
+    logger.info("Starting DNA Decoder server on port 8000")
     app.run(host='0.0.0.0', port=8000, debug=True)

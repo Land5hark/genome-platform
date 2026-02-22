@@ -371,6 +371,7 @@
       document.getElementById('statusTitle').textContent = 'Processing Error';
       document.getElementById('statusSub').textContent =
         `${err.message} — Your purchase is saved. Please contact support.`;
+      console.error('[DNA Decoder] Report download error:', err);
     }
   })();
 </script>

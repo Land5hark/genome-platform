@@ -50,9 +50,18 @@
     background:var(--accent); color:#fff; border:none;
     border-radius:10px; padding:14px 32px; font-size:1rem;
     font-weight:600; cursor:pointer; margin:20px 0;
-    display:inline-block; text-decoration:none;
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px; text-decoration:none; transition:all 0.2s;
   }
   .download-btn:hover { opacity:0.9; }
+  .download-btn:active { transform:scale(0.96); }
+  .download-btn:disabled { opacity:0.7; cursor:not-allowed; }
+  .download-btn.loading::after {
+    content:''; display:inline-block; width:16px; height:16px;
+    border:2px solid rgba(255,255,255,0.3); border-top-color:#fff;
+    border-radius:50%; animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
   .upsell-section {
     margin-top:48px; max-width:620px; width:100%;
@@ -87,8 +96,17 @@
     color:#fff; border:none; border-radius:10px;
     padding:16px 40px; font-size:1.05rem; font-weight:600;
     cursor:pointer; width:100%; margin-top:20px;
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px; transition:all 0.2s;
   }
   .upgrade-btn:hover { opacity:0.9; }
+  .upgrade-btn:active { transform:scale(0.97); }
+  .upgrade-btn:disabled { opacity:0.7; cursor:not-allowed; }
+  .upgrade-btn.loading::after {
+    content:''; display:inline-block; width:16px; height:16px;
+    border:2px solid rgba(255,255,255,0.3); border-top-color:#fff;
+    border-radius:50%; animation:spin 0.7s linear infinite;
+  }
 
   .skip-link {
     display:block; margin-top:16px; color:var(--muted);
@@ -179,8 +197,13 @@
   const analysisId  = params.get('analysis_id') || '';
 
   // Download Core Report
-  document.getElementById('downloadBtn').onclick = async (e) => {
+  const dlBtn = document.getElementById('downloadBtn');
+  dlBtn.onclick = async (e) => {
     e.preventDefault();
+    dlBtn.classList.add('loading');
+    dlBtn.textContent = 'Preparing download';
+    dlBtn.style.pointerEvents = 'none';
+
     const url =
       `/api/complete-core` +
       `?session_id=${encodeURIComponent(sessionId)}` +
@@ -188,7 +211,11 @@
 
     try {
       const resp = await fetch(url);
-      if (!resp.ok) throw new Error('Download failed');
+      if (!resp.ok) {
+        let errMsg = 'Download failed';
+        try { errMsg = (await resp.json()).error || errMsg; } catch(_) {}
+        throw new Error(errMsg);
+      }
 
       const blob = await resp.blob();
       const a = document.createElement('a');
@@ -199,17 +226,24 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
 
-      document.getElementById('downloadBtn').textContent = '✓ Downloaded!';
+      dlBtn.classList.remove('loading');
+      dlBtn.textContent = '\u2713 Downloaded!';
+      dlBtn.style.pointerEvents = 'auto';
     } catch (err) {
-      alert('Download failed. Please contact support.');
+      dlBtn.classList.remove('loading');
+      dlBtn.textContent = 'Retry Download';
+      dlBtn.style.pointerEvents = 'auto';
+      alert('Download failed: ' + err.message);
+      console.error('[DNA Decoder] Download error:', err);
     }
   };
 
   // Upgrade to Deep Dive
-  document.getElementById('upgradeBtn').onclick = async () => {
-    const btn = document.getElementById('upgradeBtn');
-    btn.textContent = 'Redirecting to checkout...';
-    btn.disabled = true;
+  const upBtn = document.getElementById('upgradeBtn');
+  upBtn.onclick = async () => {
+    upBtn.classList.add('loading');
+    upBtn.textContent = 'Redirecting to checkout';
+    upBtn.disabled = true;
 
     try {
       const resp = await fetch('/api/checkout-deep-dive', {
@@ -221,9 +255,11 @@
       const { checkout_url } = await resp.json();
       window.location.href = checkout_url;
     } catch (err) {
-      btn.textContent = 'Upgrade to Deep Dive — $79';
-      btn.disabled = false;
+      upBtn.classList.remove('loading');
+      upBtn.textContent = 'Upgrade to Deep Dive \u2014 $79';
+      upBtn.disabled = false;
       alert('Checkout error: ' + err.message);
+      console.error('[DNA Decoder] Upgrade checkout error:', err);
     }
   };
 </script>

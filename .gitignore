@@ -141,6 +141,7 @@ vite.config.ts.timestamp-*
 # Genome platform
 .venv/
 .sessions/
+.logs/
 Genetic Health/reports/
 # clinvar_alleles.tsv is 289MB - decompressed at runtime from clinvar_alleles.tsv.gz
 Genetic Health/data/clinvar_alleles.tsv
