@@ -185,7 +185,7 @@ The Deep Dive report goes further — every single finding in your data, flagged
 
 ---
 
-*DNA Decoder by Genome Platform*
+*DNA Decoder by Helix Health*
 """)
 
     md_content = "\n".join(report_parts)

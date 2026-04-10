@@ -211,7 +211,7 @@ def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
     report_parts.append(generate_disclaimer())
 
     # Footer
-    report_parts.append("*DNA Decoder by Genome Platform*\n")
+    report_parts.append("*DNA Decoder by Helix Health*\n")
 
     md_content = "\n".join(report_parts)
 

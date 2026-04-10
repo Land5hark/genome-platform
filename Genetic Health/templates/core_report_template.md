@@ -215,7 +215,7 @@ The DNA Decoder Deep Dive Clinical Context Report explores additional variant ca
 ---
 
 *Generated on {report_date}*
-*DNA Decoder by Genome Platform*
+*DNA Decoder by Helix Health*
 
 ---
 

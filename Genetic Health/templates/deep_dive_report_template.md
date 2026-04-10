@@ -263,7 +263,7 @@ If you have a family history of genetic disease and this report doesn't explain 
 ---
 
 *Generated on {report_date}*
-*DNA Decoder Deep Dive by Genome Platform*
+*DNA Decoder Deep Dive by Helix Health*
 
 ---
 
