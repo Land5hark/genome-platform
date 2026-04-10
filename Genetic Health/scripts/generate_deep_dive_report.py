@@ -146,15 +146,16 @@ def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
                                        subject_name: str = None) -> str:
     """Generate $79 Deep Dive Report in Markdown format.
 
-    Uses the same programmatic format as the exhaustive report — full version:
-    - Executive summary (with categories)
-    - ClinVar flagged variants (confidence-tiered)
-    - Priority findings (high + moderate with full clinical context)
-    - Pathway analysis
-    - Complete findings by category
-    - Full pharmacogenomics (all evidence levels, detailed per-entry)
-    - Action summary
-    - Disclaimer
+    Sections:
+    1. Executive summary (with categories)
+    2. AI Clinical Intelligence (Nemotron via OpenRouter)
+    3. ClinVar flagged variants (confidence-tiered)
+    4. Priority findings (high + moderate with full clinical context)
+    5. Pathway analysis
+    6. Complete findings by category
+    7. Full pharmacogenomics (all evidence levels, detailed per-entry)
+    8. Action summary
+    9. Disclaimer
     """
     from generate_exhaustive_report import (
         generate_executive_summary,
@@ -165,6 +166,7 @@ def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
         generate_action_summary,
         generate_disclaimer,
     )
+    from generate_ai_deep_dive_analysis import generate_ai_analysis
 
     findings = results.get('findings', [])
     pharmgkb = results.get('pharmgkb_findings', [])
@@ -181,26 +183,31 @@ def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
         include_categories=True,
     ))
 
-    # 2. ClinVar flagged variants (unique to Deep Dive)
+    # 2. AI Clinical Intelligence (Nemotron narrative synthesis)
+    ai_section = generate_ai_analysis(results, pathogenic_variants, subject_name=subject_name)
+    if ai_section:
+        report_parts.append(ai_section + "\n")
+
+    # 3. ClinVar flagged variants (unique to Deep Dive)
     report_parts.append(_build_clinvar_section(pathogenic_variants))
 
-    # 3. Priority findings (high + moderate with full clinical context)
+    # 4. Priority findings (high + moderate with full clinical context)
     report_parts.append(generate_priority_findings(findings))
 
-    # 4. Pathway analysis
+    # 5. Pathway analysis
     report_parts.append(generate_pathway_analysis(findings))
 
-    # 5. Complete findings by category (ALL findings)
+    # 6. Complete findings by category (ALL findings)
     report_parts.append(generate_full_findings(findings))
 
-    # 6. Full pharmacogenomics (all levels, detailed per-entry)
+    # 7. Full pharmacogenomics (all levels, detailed per-entry)
     if pharmgkb:
         report_parts.append(generate_pharmgkb_report(pharmgkb))
 
-    # 7. Action summary
+    # 8. Action summary
     report_parts.append(generate_action_summary(findings))
 
-    # 8. Disclaimer
+    # 9. Disclaimer
     report_parts.append(generate_disclaimer())
 
     # Footer

@@ -13,7 +13,9 @@
       "Bash(gh.exe pr view:*)",
       "Bash(where:*)",
       "Bash(winget list:*)",
-      "Bash(git check-attr:*)"
+      "Bash(git check-attr:*)",
+      "Bash(source:*)",
+      "Bash(find:*)"
     ]
   }
 }

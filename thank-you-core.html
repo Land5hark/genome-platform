@@ -185,7 +185,7 @@
       Any flagged variants require clinical-grade confirmation testing. This is entirely optional.
     </p>
 
-    <button class="upgrade-btn" id="upgradeBtn">Upgrade to Deep Dive — $79</button>
+    <button class="upgrade-btn" id="upgradeBtn">Add Deep Dive AI Analysis — +$40</button>
 
     <a href="/" class="skip-link">I'm good with my Core Report</a>
   </div>
@@ -256,7 +256,7 @@
       window.location.href = checkout_url;
     } catch (err) {
       upBtn.classList.remove('loading');
-      upBtn.textContent = 'Upgrade to Deep Dive \u2014 $79';
+      upBtn.textContent = 'Add Deep Dive AI Analysis \u2014 +$40';
       upBtn.disabled = false;
       alert('Checkout error: ' + err.message);
       console.error('[DNA Decoder] Upgrade checkout error:', err);

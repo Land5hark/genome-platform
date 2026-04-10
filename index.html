@@ -953,12 +953,106 @@
             color: var(--text);
         }
 
-        .unlock-cta p {
+        .unlock-cta > p {
             font-size: 1.125rem;
             color: var(--text-secondary);
             max-width: 500px;
             margin: 0 auto 32px;
             line-height: 1.7;
+        }
+
+        /* Plan selector */
+        .plan-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0 28px;
+            text-align: left;
+        }
+        @media (max-width: 600px) {
+            .plan-cards { grid-template-columns: 1fr; }
+        }
+        .plan-card {
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 22px 20px;
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s;
+            position: relative;
+            user-select: none;
+        }
+        .plan-card:hover { border-color: var(--purple-light); }
+        .plan-card.selected {
+            border-color: var(--purple);
+            background: rgba(124,58,237,0.08);
+        }
+        .plan-card-radio {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            vertical-align: middle;
+            margin-right: 8px;
+            flex-shrink: 0;
+            transition: border-color 0.15s;
+        }
+        .plan-card.selected .plan-card-radio {
+            border-color: var(--purple);
+            background: var(--purple);
+            box-shadow: inset 0 0 0 3px var(--bg-elevated);
+        }
+        .plan-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .plan-card-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text);
+        }
+        .plan-card-tag {
+            margin-left: auto;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: rgba(124,58,237,0.2);
+            color: var(--purple-light);
+        }
+        .plan-card-price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .plan-card-price-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .plan-card-features {
+            list-style: none;
+            padding: 0; margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .plan-card-features li {
+            padding: 3px 0;
+        }
+        .plan-card-features li::before {
+            content: "✓ ";
+            color: var(--purple-light);
+            font-weight: 600;
+        }
+        .plan-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: -8px;
+            margin-bottom: 20px;
         }
 
         /* FAQ */
@@ -1503,13 +1597,50 @@
                 </div>
                 <div id="teaserCards"></div>
                 <div class="unlock-cta">
-                    <h3>Unlock Your Full Report</h3>
-                    <p>
-                        Get your complete Core Report with personalized wellness insights,
-                        medication response guidance, and actionable lifestyle recommendations.
-                    </p>
+                    <h3>Choose Your Report</h3>
+                    <p>Select a plan, then proceed to secure checkout.</p>
+
+                    <div class="plan-cards">
+                        <!-- Core Plan -->
+                        <div class="plan-card selected" id="planCore" onclick="selectPlan('core')">
+                            <div class="plan-card-header">
+                                <span class="plan-card-radio"></span>
+                                <span class="plan-card-name">Core Report</span>
+                            </div>
+                            <div class="plan-card-price">$39</div>
+                            <div class="plan-card-price-note">One-time payment</div>
+                            <ul class="plan-card-features">
+                                <li>Lifestyle genetics insights</li>
+                                <li>Pharmacogenomics quick card</li>
+                                <li>Medication response guidance</li>
+                                <li>Actionable wellness recommendations</li>
+                            </ul>
+                        </div>
+
+                        <!-- Deep Dive Upgrade -->
+                        <div class="plan-card" id="planDeepDive" onclick="selectPlan('deep_dive')">
+                            <div class="plan-card-header">
+                                <span class="plan-card-radio"></span>
+                                <span class="plan-card-name">Core + Deep Dive</span>
+                                <span class="plan-card-tag">AI Analysis</span>
+                            </div>
+                            <div class="plan-card-price">$79</div>
+                            <div class="plan-card-price-note">$39 + <strong>$40 upgrade</strong> &bull; One-time</div>
+                            <ul class="plan-card-features">
+                                <li>Everything in Core, plus:</li>
+                                <li>AI-analyzed clinical findings</li>
+                                <li>ClinVar variant screening</li>
+                                <li>Full pharmacogenomics table</li>
+                                <li>Confirmatory testing guidance</li>
+                                <li>Family planning considerations</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p class="plan-note">Deep Dive is informational only — not diagnostic. Any flagged variants require clinical-grade confirmation.</p>
+
                     <button id="unlockBtn" class="btn-primary btn-large">
-                        Unlock Your Full Report — $39
+                        Get Core Report — $39
                     </button>
                     <p style="margin-top:16px; font-size:0.875rem; color:var(--text-muted);">
                         Secure checkout &bull; Instant download
@@ -1657,28 +1788,41 @@
             resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Unlock button: redirect to Core checkout
+        // Plan selection
+        let selectedPlan = 'core';
+        function selectPlan(plan) {
+            selectedPlan = plan;
+            document.getElementById('planCore').classList.toggle('selected', plan === 'core');
+            document.getElementById('planDeepDive').classList.toggle('selected', plan === 'deep_dive');
+            unlockBtn.textContent = plan === 'deep_dive'
+                ? 'Get Core + Deep Dive — $79'
+                : 'Get Core Report — $39';
+        }
+
+        // Unlock button: redirect to checkout based on selected plan
         unlockBtn.addEventListener('click', async () => {
             if (!currentAnalysisId) return;
             unlockBtn.classList.add('loading');
             unlockBtn.textContent = 'Redirecting to checkout';
             unlockBtn.disabled = true;
 
+            const isDeepDive = selectedPlan === 'deep_dive';
+            const endpoint = isDeepDive ? '/api/checkout-deep-dive' : '/api/checkout-core';
+            const body = { analysis_id: currentAnalysisId, subject_name: currentSubjectName || 'report' };
+            if (isDeepDive) body.source = 'pre_checkout';
+
             try {
-                const resp = await fetch('/api/checkout-core', {
+                const resp = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        analysis_id: currentAnalysisId,
-                        subject_name: currentSubjectName || 'report',
-                    }),
+                    body: JSON.stringify(body),
                 });
                 if (!resp.ok) throw new Error('Checkout session failed');
                 const { checkout_url } = await resp.json();
                 window.location.href = checkout_url;
             } catch (err) {
                 unlockBtn.classList.remove('loading');
-                unlockBtn.textContent = 'Unlock Your Full Report — $39';
+                selectPlan(selectedPlan); // restore button text
                 unlockBtn.disabled = false;
                 statusEl.textContent = `Checkout error: ${err.message}`;
                 statusEl.style.color = '#DC2626';

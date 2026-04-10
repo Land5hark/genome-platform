@@ -529,9 +529,10 @@ def checkout_core():
 
 @app.post('/api/checkout-deep-dive')
 def checkout_deep_dive():
-    """Create Stripe Checkout for $79 Deep Dive upgrade (after Core purchase)."""
+    """Create Stripe Checkout for $79 Deep Dive (upgrade or direct purchase)."""
     data = request.get_json(silent=True) or {}
     analysis_id = data.get("analysis_id", "")
+    source = data.get("source", "")  # "pre_checkout" = direct purchase before core
 
     session_dir = SESSIONS_DIR / analysis_id
     if not analysis_id or not session_dir.exists():
@@ -545,23 +546,36 @@ def checkout_deep_dive():
     from_ref_file = session_dir / "from_ref.txt"
     from_ref = from_ref_file.read_text(encoding='utf-8').strip() if from_ref_file.exists() else None
 
-    # Read subject name from session
-    name_file = session_dir / "subject_name.txt"
-    subject_name = name_file.read_text(encoding='utf-8').strip() if name_file.exists() else "report"
+    # Subject name: prefer body param (pre-checkout), fall back to session file
+    subject_name = (
+        data.get("subject_name")
+        or (session_dir / "subject_name.txt").read_text(encoding='utf-8').strip()
+        if (session_dir / "subject_name.txt").exists() else "report"
+    ) or "report"
 
     metadata = {"analysis_id": analysis_id, "subject_name": subject_name, "tier": "deep_dive"}
     if from_ref:
         metadata["from_ref"] = from_ref
+
+    # Cancel URL: pre-checkout goes back home; post-core goes back to core success page
+    if source == "pre_checkout":
+        cancel_url = f"{BASE_URL}/"
+    else:
+        cancel_url = (
+            f"{BASE_URL}/success-core"
+            f"?session_id="
+            f"&analysis_id={analysis_id}"
+        )
 
     checkout_session = stripe.checkout.Session.create(
         mode="payment",
         line_items=[{
             "price_data": {
                 "currency": "usd",
-                "unit_amount": 7900,  # $79.00
+                "unit_amount": 7900,  # $79.00 (Core $39 + Deep Dive upgrade $40)
                 "product_data": {
-                    "name": "DNA Decoder Deep Dive Report",
-                    "description": "Clinical variant screening, confirmatory testing guidance, full pharmacogenomics table",
+                    "name": "DNA Decoder Core + Deep Dive Reports",
+                    "description": "Core wellness report + AI-analyzed clinical variant screening, full pharmacogenomics table, confirmatory testing guidance",
                 },
             },
             "quantity": 1,
@@ -572,11 +586,7 @@ def checkout_deep_dive():
             f"&analysis_id={analysis_id}"
             f"&subject_name={subject_name}"
         ),
-        cancel_url=(
-            f"{BASE_URL}/success-core"
-            f"?session_id="
-            f"&analysis_id={analysis_id}"
-        ),
+        cancel_url=cancel_url,
         metadata=metadata,
     )
 
