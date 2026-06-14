@@ -1,8 +1,19 @@
 """
-AI-Powered Deep Dive Analysis via OpenRouter (Nemotron)
+AI-Powered Deep Dive Analysis via OpenRouter -> Claude Sonnet 4.6
 
 Synthesizes all genetic layers — lifestyle, pharmacogenomics, ClinVar —
-into a personalized narrative section for the Deep Dive report.
+into a personalized, conversational narrative that becomes the SPINE of the
+Deep Dive report. The dense template sections (tables, variant lists) become
+the supporting evidence below this narrative.
+
+Drop-in replacement: same public function signature as the original
+Nemotron version, and STILL uses your existing OpenRouter key + the
+OpenAI-compatible client. The only real change is the model slug and the
+(much stronger) prompt.
+
+Env:
+    OPENROUTER_API_KEY   required (falls back to template-only if unset)
+    DEEPDIVE_MODEL       optional override (default: anthropic/claude-sonnet-4.6)
 """
 
 import os
@@ -10,8 +21,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-OPENROUTER_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# Highest-functioning / most cost-effective pick for a readable flagship
+# narrative on a $79 product (~4 cents/report). Set DEEPDIVE_MODEL to
+# anthropic/claude-haiku-4.5 to go cheaper, or anthropic/claude-opus-4.8 for premium.
+DEFAULT_MODEL = os.environ.get("DEEPDIVE_MODEL", "anthropic/claude-sonnet-4.6")
 
 
 def generate_ai_analysis(
@@ -20,33 +35,32 @@ def generate_ai_analysis(
     subject_name: str | None = None,
 ) -> str:
     """
-    Call OpenRouter (Nemotron) to generate an AI narrative analysis section.
-
-    Args:
-        results: dict from comprehensive_results.json
-        pathogenic_variants: list of pathogenic variants from extract_pathogenic_variants()
-        subject_name: optional name to personalize the report
+    Call Claude (via OpenRouter) to generate the conversational narrative.
 
     Returns:
-        Markdown string for the AI Clinical Intelligence section,
-        or empty string if the call fails.
+        Markdown string for the narrative section, or empty string if the
+        call fails (report still renders with template sections only).
     """
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
-        logger.warning("OPENROUTER_API_KEY not set — skipping AI analysis section")
+        logger.warning("OPENROUTER_API_KEY not set — skipping AI narrative section")
         return ""
 
     from openai import OpenAI
 
     name = subject_name or "the subject"
-    first_name = name.split()[0] if name and name not in ("the subject", "You") else "You"
+    first_name = (
+        name.split()[0]
+        if name and name not in ("the subject", "You")
+        else "you"
+    )
 
     findings = results.get("findings", [])
     pharmgkb = results.get("pharmgkb_findings", [])
     summary = results.get("summary", {})
     disease_stats = results.get("disease_stats", {})
 
-    # Top lifestyle findings
+    # ---- Compress the structured data into a compact brief for the model ----
     high_findings = sorted(
         [f for f in findings if f.get("magnitude", 0) >= 3],
         key=lambda x: x.get("magnitude", 0), reverse=True,
@@ -70,15 +84,13 @@ def generate_ai_analysis(
     if not findings_text:
         findings_text = "No notable lifestyle/wellness findings detected.\n"
 
-    # PharmGKB Level 1 interactions
     top_pharma = [p for p in pharmgkb if p.get("level", "").startswith("1")][:6]
     pharma_text = "\n".join(
-        f"- {p.get('gene', '?')} | {p.get('drug', '')} | "
+        f"- {p.get('gene', '?')} | {p.get('drugs', p.get('drug', ''))} | "
         f"Level {p.get('level', '')} | {(p.get('annotation', '') or '')[:120]}"
         for p in top_pharma
     ) or "No Level 1 drug-gene interactions detected."
 
-    # ClinVar clinical variants
     if pathogenic_variants:
         clinvar_text = "\n".join(
             f"- {v['gene']} ({v['significance'].replace('_', ' ')}) | "
@@ -97,7 +109,7 @@ def generate_ai_analysis(
     user_prompt = f"""Subject: {name}
 Total SNPs analyzed: {total_snps:,}
 High-impact lifestyle findings: {high_impact_count}
-ClinVar pathogenic variants: {pathogenic_count}
+ClinVar pathogenic variants flagged: {pathogenic_count}
 
 LIFESTYLE & WELLNESS GENETICS:
 {findings_text}
@@ -107,51 +119,54 @@ MEDICATION-GENE INTERACTIONS (Level 1 evidence):
 CLINVAR CLINICAL VARIANTS:
 {clinvar_text}
 
-Write the AI Clinical Intelligence section now."""
+Write the narrative now."""
 
-    system_prompt = f"""You are a direct, no-BS genetics analyst. You synthesize all genetic layers — lifestyle, clinical, pharmacogenomics — into one cohesive narrative.
+    system_prompt = f"""You are a sharp, warm genetics translator. Your job: take a dense genomic analysis and turn it into something a smart, curious non-scientist actually wants to read — start to finish.
 
-Write for someone smart but not medical. Short sentences. No corporate filler. No hand-holding.
-Give real information, not descriptions of what each section means.
+Write to {first_name} directly. Use "you" and "your". Second person, conversational, like a knowledgeable friend who happens to be a genetics expert explaining it over coffee. Short paragraphs. Plain words. Vary sentence length so it has rhythm.
 
-Tone examples:
+HARD RULES — never break these (legal/clinical):
+- Never write "you are diagnosed with", "this confirms you have [X] disease/syndrome/disorder", "results confirm that you", or "genetic test shows you have".
+- Flagged variants are "flagged", "worth watching", "a maybe" — never "diagnosed" or "confirmed".
+- Frame genetics as probabilities and dials, not destiny.
+
+VOICE EXAMPLES (match this energy):
+- "Think of these as dials, not switches. Your lifestyle moves the dial way more than these genes do."
 - "These are genetic maybes, not diagnoses."
-- "Think of these as dials, not switches. Lifestyle turns the dial way more than these SNPs do."
 - "This is monitoring territory, not alarm territory."
-- Blunt but not cruel. Concrete analogies when helpful.
+- "Here's the one thing on this whole page actually worth your attention."
+Blunt but kind. Concrete analogies. Zero corporate filler. Never describe what a section "will cover" — just say the actual thing.
 
-Address {first_name} directly. Use "you" and "your".
+Write ONLY the following in Markdown. No preamble, no meta-commentary.
 
-Write ONLY these sections in Markdown — no preamble, no extra commentary:
+## Your DNA, In Plain English
 
-## AI Clinical Intelligence
+[2-3 short paragraphs. This is the hook and the heart of the report. Lead with the single most important takeaway from {first_name}'s ENTIRE genome — be direct about whether there's anything clinically worth attention or whether it's mostly optimization territory. Then paint the big picture: what kind of genetic profile is this? Make {first_name} feel SEEN by their own data. This section alone should be worth the price.]
 
-### The Full Picture
-[3-4 sentences. What does ALL the data show together? Lead with the single most important takeaway from this entire genome — be direct about whether there are clinical concerns or not.]
+### What's Actually Worth Your Attention
 
-### Key Genetic Patterns
-[2-4 bullet points. Each is one concrete insight that connects findings across categories. No generic statements — specific to what's in this data.]
+[3-5 bullet points, each a specific, concrete insight that connects findings across categories. No generic wellness advice. Each bullet names the real gene/pattern and what it means for {first_name} in practice. Order by what matters most.]
 
-### Medication Profile
-[2-3 sentences. What do the drug-gene interactions mean in practice? Which drug categories need extra attention? Be specific, not vague.]
+### Your Medication Profile
 
-### Clinical Flags
-[If ClinVar variants were found: address them directly but non-diagnostically — "flagged" not "diagnosed". If none found: one direct sentence confirming it and why that's actually meaningful.]
+[2-3 sentences. What do the drug-gene interactions mean the next time {first_name} gets a prescription? Name the specific drug categories that need extra care. If nothing notable, say so plainly and move on.]
 
-### What Matters Most
-[3 specific, findings-driven action items. Not generic wellness advice. Tied to what was actually found.]
+### The Clinical Flags
+
+[If ClinVar variants were flagged: address them head-on but non-diagnostically — what "flagged" honestly means, why a single copy usually isn't alarming, and when it'd actually be worth a genetic counselor. Calm the reader without dismissing them. If none were found: one direct, reassuring sentence explaining why a clean clinical scan is genuinely meaningful — and what it does NOT rule out.]
+
+### If You Do Three Things
+
+[Exactly 3 specific action items, each tied to an actual finding above — not generic advice. Make them feel doable this week, not someday.]
 
 ---
 
-*AI analysis generated from genomic data. Educational only — not diagnostic. Discuss findings with a qualified clinician.*"""
+*This narrative was generated from {first_name}'s genomic data and is educational, not diagnostic. The detailed findings, variant tables, and full evidence are in the sections below. Discuss anything that concerns you with a qualified clinician.*"""
 
     try:
-        client = OpenAI(
-            api_key=api_key,
-            base_url=OPENROUTER_BASE_URL,
-        )
+        client = OpenAI(api_key=api_key, base_url=OPENROUTER_BASE_URL)
         response = client.chat.completions.create(
-            model=OPENROUTER_MODEL,
+            model=DEFAULT_MODEL,
             max_tokens=2048,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -161,5 +176,5 @@ Write ONLY these sections in Markdown — no preamble, no extra commentary:
         content = response.choices[0].message.content
         return content.strip() if content else ""
     except Exception as e:
-        logger.error(f"OpenRouter AI analysis failed: {e}")
+        logger.error(f"OpenRouter/Claude narrative generation failed: {e}")
         return ""
