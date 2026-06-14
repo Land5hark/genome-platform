@@ -84,12 +84,15 @@ def generate_ai_analysis(
     if not findings_text:
         findings_text = "No notable lifestyle/wellness findings detected.\n"
 
-    top_pharma = [p for p in pharmgkb if p.get("level", "").startswith("1")][:6]
+    top_pharma = sorted(
+        [p for p in pharmgkb if p.get("level", "").startswith(("1", "2"))],
+        key=lambda x: x.get("level", "9"),
+    )[:12]
     pharma_text = "\n".join(
         f"- {p.get('gene', '?')} | {p.get('drugs', p.get('drug', ''))} | "
         f"Level {p.get('level', '')} | {(p.get('annotation', '') or '')[:120]}"
         for p in top_pharma
-    ) or "No Level 1 drug-gene interactions detected."
+    ) or "No Level 1-2 drug-gene interactions detected."
 
     if pathogenic_variants:
         clinvar_text = "\n".join(
@@ -149,7 +152,7 @@ Write ONLY the following in Markdown. No preamble, no meta-commentary.
 
 ### Your Medication Profile
 
-[2-3 sentences. What do the drug-gene interactions mean the next time {first_name} gets a prescription? Name the specific drug categories that need extra care. If nothing notable, say so plainly and move on.]
+[2-3 sentences. What do the drug-gene interactions mean the next time {first_name} gets a prescription? Name the specific drug categories that need extra care — if opioid or pain medication interactions are present, always name them explicitly. If nothing notable, say so plainly and move on.]
 
 ### The Clinical Flags
 
