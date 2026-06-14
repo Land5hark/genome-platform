@@ -175,20 +175,35 @@ def generate_deep_dive_report_markdown(results: dict, disease_findings: dict,
     # Build report parts
     report_parts = []
 
-    # 1. Executive summary (full — with categories)
-    report_parts.append(generate_executive_summary(
-        results,
-        title="DNA Decoder: Deep Dive Report",
-        subject_name=subject_name,
-        include_categories=True,
-    ))
+    # 1. Minimal title header — the narrative leads the report, not a stats dump.
+    from datetime import datetime
+    header = "# DNA Decoder: Deep Dive Report\n\n"
+    if subject_name:
+        header += f"**Subject:** {subject_name}\n\n"
+    header += f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n---\n"
+    report_parts.append(header)
 
-    # 2. AI Clinical Intelligence (Nemotron narrative synthesis)
+    # 2. Conversational narrative (Claude via OpenRouter) — the SPINE of the
+    #    report. This is the first thing the reader sees after the title.
     ai_section = generate_ai_analysis(results, pathogenic_variants, subject_name=subject_name)
     if ai_section:
         report_parts.append(ai_section + "\n")
 
-    # 3. ClinVar flagged variants (unique to Deep Dive)
+    # 3. Executive summary stats — now SUPPORTING detail, below the narrative.
+    #    Strip its duplicate H1/subject/date block (we render the header above).
+    exec_summary = generate_executive_summary(
+        results,
+        title="DNA Decoder: Deep Dive Report",
+        subject_name=subject_name,
+        include_categories=True,
+    )
+    _marker = "## Executive Summary"
+    _idx = exec_summary.find(_marker)
+    if _idx != -1:
+        exec_summary = exec_summary[_idx:]
+    report_parts.append(exec_summary)
+
+    # 4. ClinVar flagged variants (unique to Deep Dive)
     report_parts.append(_build_clinvar_section(pathogenic_variants))
 
     # 4. Priority findings (high + moderate with full clinical context)
